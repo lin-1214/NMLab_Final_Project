@@ -79,7 +79,7 @@ export default {
         ws.on("message", async (byteString) => {
             const data = byteString;
             const [task, payload] = JSON.parse(data);
-            console.log(task);
+            console.log("task", task);
             switch (task) {
                 case "input": {
                     const { name, body } = payload;
@@ -115,18 +115,14 @@ export default {
                 }
                 case "CHAT":
                     const { name, to } = payload;
-                    console.log(name, to);
+                    console.log("in CHAT", name, to);
                     const participants = await Promise.all(
                         [name, to].map(async (user) => await validateUser(user))
                     );
-                    const chatboxData = await validateChatBox(
-                        makeName(name, to),
-                        participants
-                    );
+                    const chatboxData = await validateChatBox(makeName(name, to), participants);
                     await Promise.all(
                         participants.map(
-                            async (user) =>
-                                await updateUserChatbox(user, chatboxData._id)
+                            async (user) => await updateUserChatbox(user, chatboxData._id)
                         )
                     );
                     initChatBoxData(chatboxData);
@@ -135,10 +131,7 @@ export default {
                 case "clear": {
                     Message.deleteMany({}, () => {
                         sendData(["cleared"], ws);
-                        sendStatus(
-                            { type: "success", msg: "Message cache cleared." },
-                            ws
-                        );
+                        sendStatus({ type: "success", msg: "Message cache cleared." }, ws);
                     });
                     break;
                 }
@@ -165,21 +158,16 @@ export default {
 
             // user(ws) was in another chatbox
             if (ws.box !== chatBoxName) {
-                if (ws.box !== "" && chatBoxes[ws.box])
-                    chatBoxes[ws.box].delete(ws);
+                if (ws.box !== "" && chatBoxes[ws.box]) chatBoxes[ws.box].delete(ws);
                 ws.box = chatBoxName;
             }
             switch (task) {
                 case "CHAT":
                     console.log(name, to);
-                    const chatboxData = await validateChatBox(
-                        makeName(name, to),
-                        participants
-                    );
+                    const chatboxData = await validateChatBox(makeName(name, to), participants);
                     await Promise.all(
                         participants.map(
-                            async (user) =>
-                                await updateUserChatbox(user, chatboxData._id)
+                            async (user) => await updateUserChatbox(user, chatboxData._id)
                         )
                     );
                     initChatBoxData(chatboxData, ws);
@@ -211,7 +199,7 @@ export default {
 
                     // console.log(chatBoxes[chatBoxName]);
                     chatBoxes[chatBoxName].forEach((ws) => {
-                        sendData(["output", [{ name: name, body: body }]], ws);
+                        sendData(["output", [{ name: name, to: to, body: body }]], ws);
                     });
                     break;
                 case "CLEAR":
