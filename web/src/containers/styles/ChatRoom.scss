@@ -1,0 +1,32 @@
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    margin: auto;
+}
+
+.chatBoxWrapper {
+    width: 100%;
+    height: 70vh;
+    background: #eeeeee52;
+    border-radius: 10px;
+    margin: 20px;
+    padding: 20px;
+    overflow: auto;
+}
+
+.chatBox {
+    width: 100%;
+    height: 55vh;
+    background: #eeeeee52;
+    padding: 10px;
+    overflow: auto;
+}
+
+.footRef {
+    height: 40px;
+}
