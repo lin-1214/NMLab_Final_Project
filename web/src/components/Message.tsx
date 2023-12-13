@@ -8,15 +8,9 @@ interface MessageProps {
 }
 const Message: FC<MessageProps> = ({ name, body, user }) => {
     return (
-        <div className="message-container" isMe={(name === user).toString()}>
-            <p>
-                <Chip
-                    color="primary"
-                    style={name === user ? { display: "none" } : {}}
-                    label={name}
-                />
-                {` ${body}`}
-            </p>
+        <div className="message-container" isme={(name === user).toString()}>
+            <Chip color="primary" style={name === user ? { display: "none" } : {}} label={name} />
+            <p>{` ${body}`}</p>
         </div>
     );
 };

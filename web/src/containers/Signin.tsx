@@ -16,7 +16,7 @@ const Wrapper = styled.div`
 const SignIn = () => {
     const { userName, setNowUser } = useUserData();
     const [enteredName, setEnteredName] = useState("");
-    console.log("enteredName", enteredName);
+    // console.log("enteredName", enteredName);
     const handleSubmit = () => {
         if (enteredName === "") {
             displayStatus({

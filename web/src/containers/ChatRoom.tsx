@@ -6,7 +6,13 @@ import { useUserData } from "../hooks/useUserData";
 import useChat from "../hooks/useChat";
 import "./styles/ChatRoom.scss";
 import { Button, TextField } from "@mui/material";
-import { statusType, ChatBoxStates, ChatRoomProps, messageTypes } from "../types";
+import {
+    statusType,
+    ChatBoxStates,
+    ChatRoomProps,
+    messageTypes,
+    ChatRoomInputProps,
+} from "../types";
 import * as ChatRoomStyled from "./styles/ChatRoom.styled";
 import SendIcon from "@mui/icons-material/Send";
 import ChatRoomTabs from "../components/ChatRoomTabs";
@@ -32,9 +38,51 @@ const displayStatus = (status: statusType) => {
         // }
     }
 };
+const ChatRoomInput: FC<ChatRoomInputProps> = ({ bodyRef, onSubmit }) => {
+    const [body, setBody] = useState("");
+    const handleSubmit = () => {
+        if (onSubmit(body)) {
+            setBody("");
+        }
+    };
+    return (
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "row",
+                alignContent: "center",
+                justifyContent: "center",
+            }}
+        >
+            <TextField
+                ref={bodyRef}
+                placeholder="Type a message here..."
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key == "Enter" && !e.nativeEvent.isComposing) {
+                        // console.log("enter", e);
+                        handleSubmit();
+                    }
+                }}
+                size="small"
+                autoFocus
+            ></TextField>
+            <div
+                onClick={() => handleSubmit()}
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                <SendIcon></SendIcon>
+            </div>
+        </div>
+    );
+};
 const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
     const { userName, setLogOut } = useUserData();
-    const [body, setBody] = useState("");
     const bodyRef = useRef<HTMLInputElement>(null);
     const RoomBottomRef = useRef<HTMLDivElement>(null);
     const {
@@ -47,12 +95,10 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
         sendMessageInBox,
         clearChatBox,
     } = useChat();
-    console.log("ChatRoom", messages);
+    // console.log("ChatRoom", messages);
     // multiple chat box
     const [activeKey, setActiveKey] = useState("");
-    const [chatBoxes, setChatBoxes] = useState<ChatBoxStates[]>([
-        { label: "General", children: [], key: "General" },
-    ]);
+    const [chatBoxes, setChatBoxes] = useState<ChatBoxStates[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
     useEffect(() => {
         askInit();
@@ -90,7 +136,7 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
         });
     };
     const displayMessages = (chat: messageTypes[]) => {
-        console.log("displayMessages", chat);
+        // console.log("2 displayMessages", chat);
         return chat.length === 0 ? (
             <p style={{ color: "#ccc" }}> No messages... </p>
         ) : (
@@ -105,9 +151,9 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
             {displayMessages(chat)}
             <ChatRoomStyled.FootRef ref={RoomBottomRef} />
         </ChatRoomStyled.ChatBox>
-    );
-    // 產⽣ chat 的 DOM nodes
+    ); // 產⽣ chat 的 DOM nodes
     const extractChat = (friend: string) => {
+        // console.log("1 extractChat", messages);
         return renderChat(messages.filter(({ name }) => name === friend || name === userName));
     }; // chatBox 的 children 來源 friend or user
     const createChatBox = (friend: string) => {
@@ -118,7 +164,7 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
         const chat = extractChat(friend);
         setChatBoxes([...chatBoxes, { label: friend, children: chat, key: friend }]);
         setMsgSent(true);
-        console.log("createChatBox", friend);
+        // console.log("createChatBox", friend);
         return friend;
     };
     const removeChatBox = (targetKey: string, activeKey: string) => {
@@ -136,8 +182,6 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
                 : activeKey
             : "";
     };
-    // console.log("Chatroom");
-
     // text bar
     const handleTextChange = (msg: string) => {
         if (activeKey === "") {
@@ -145,14 +189,14 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
                 type: "error",
                 msg: "Please select a chat room first!",
             });
-            return;
+            return false;
         }
         if (msg === "") {
             displayStatus({
                 type: "error",
                 msg: "You didn't enter any message!",
             });
-            return;
+            return false;
         }
         // sendMessage({ name: userName, body: msg });
         sendMessageInBox({
@@ -160,8 +204,8 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
             to: activeKey,
             body: msg,
         });
-        setBody("");
         setMsgSent(true);
+        return true;
     };
     return (
         <ChatRoomStyled.Wrapper>
@@ -198,7 +242,7 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
                 open={modalOpen}
                 onCreate={(name: string) => {
                     createChatBox(name);
-                    // setActiveKey();
+                    setActiveKey(name);
                     setModalOpen(false);
                     console.log("onCreate done", name);
                 }}
@@ -206,33 +250,7 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
                     setModalOpen(false);
                 }}
             />
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "row",
-                    alignContent: "center",
-                    justifyContent: "center",
-                }}
-            >
-                <TextField
-                    ref={bodyRef}
-                    placeholder="Type a message here..."
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    onSubmit={() => handleTextChange(body)}
-                    autoFocus
-                ></TextField>
-                <div
-                    onClick={() => handleTextChange(body)}
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                    }}
-                >
-                    <SendIcon></SendIcon>
-                </div>
-            </div>
+            <ChatRoomInput bodyRef={bodyRef} onSubmit={handleTextChange}></ChatRoomInput>
         </ChatRoomStyled.Wrapper>
     );
 };
