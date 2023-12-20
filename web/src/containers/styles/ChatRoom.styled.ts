@@ -5,9 +5,10 @@ export const Wrapper = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    height: 100vh;
-    width: 100vdw;
+    justify-content: flex-start;
+    padding-top: 50px;
+    height: min(90dvmax, 1400px);
+    width: min(90dvmax, 700px);
     margin: auto;
 `;
 export const ChatBoxesWrapper = styled(Tabs)`
@@ -21,7 +22,7 @@ export const ChatBoxesWrapper = styled(Tabs)`
 `;
 export const ChatBox = styled.div`
     width: 100%;
-    height: 55vh;
+    height: min(70dvmax, 650px);
     background: #eeeeee52;
     padding: 10px;
     overflow: auto;

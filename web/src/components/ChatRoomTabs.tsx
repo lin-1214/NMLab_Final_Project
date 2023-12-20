@@ -1,6 +1,7 @@
 import { FC, useEffect, useRef, useState } from "react";
 import { Button, TableContainer, Tabs, Tab, Box, Paper } from "@mui/material";
 import { ChatBoxStates } from "../types";
+import { ChatBox } from "../containers/styles/ChatRoom.styled";
 interface TabPanelProps {
     children?: React.ReactNode;
     dir?: string;
@@ -17,14 +18,13 @@ interface ChatRoomTabsProps {
 
 const TabPanel: FC<TabPanelProps> = (props) => {
     const { children, value, index, ...other } = props;
-    console.log("TabPanel", children);
     return (
         <div
             role="tabpanel"
             hidden={value !== index}
             id={`simple-tabpanel-${index}`}
             aria-labelledby={`simple-tab-${index}`}
-            style={{ width: "100vw", height: "90%" }}
+            style={{ width: "100%" }}
             {...other}
         >
             {value === index && (
@@ -52,10 +52,15 @@ function propsGenerater(index: number) {
 }
 const ChatRoomTabs: FC<ChatRoomTabsProps> = (props) => {
     const { activeKey, items, onChange, onEdit } = props;
-    const [value, setValue] = useState(0);
+    const [value, setValue] = useState<number | false>(false);
     const keyID_Pairs = useRef(new Map<number, string>());
     const IDKey_Pairs = useRef(new Map<string, number>());
     const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+        if (newValue === items.length + 1) {
+            console.log("add");
+            if (onEdit) onEdit("", "add");
+            return;
+        }
         setValue(newValue);
         const __key = keyID_Pairs.current.get(newValue);
         if (__key) onChange(__key);
@@ -66,14 +71,6 @@ const ChatRoomTabs: FC<ChatRoomTabsProps> = (props) => {
     }, [activeKey]);
     return (
         <>
-            <Button
-                variant="contained"
-                onClick={() => {
-                    if (onEdit) onEdit("ken", "add");
-                }}
-            >
-                add
-            </Button>
             <Tabs
                 value={value}
                 scrollButtons="auto"
@@ -97,19 +94,36 @@ const ChatRoomTabs: FC<ChatRoomTabsProps> = (props) => {
                         />
                     );
                 })}
+                <Tab
+                    key={"add"}
+                    label={"+"}
+                    value={items.length + 1}
+                    {...propsGenerater(items.length)}
+                />
             </Tabs>
-            {items.map((item, index) => {
-                return (
-                    <TabPanel key={item.key} value={value} index={index}>
-                        <TableContainer
-                            component={Paper}
-                            sx={{ overflowX: "hidden", overflowY: "auto" }}
-                        >
-                            {item.children}
-                        </TableContainer>
-                    </TabPanel>
-                );
-            })}
+            {items.length !== 0 ? (
+                items.map((item, index) => {
+                    return (
+                        <TabPanel key={item.key} value={value || 0} index={index}>
+                            <TableContainer
+                                component={Paper}
+                                sx={{ overflowX: "hidden", overflowY: "auto" }}
+                            >
+                                {item.children}
+                            </TableContainer>
+                        </TabPanel>
+                    );
+                })
+            ) : (
+                <TabPanel key={"add"} value={value || 0} index={items.length}>
+                    <TableContainer
+                        component={Paper}
+                        sx={{ overflowX: "hidden", overflowY: "auto" }}
+                    >
+                        <ChatBox />
+                    </TableContainer>
+                </TabPanel>
+            )}
         </>
     );
 };

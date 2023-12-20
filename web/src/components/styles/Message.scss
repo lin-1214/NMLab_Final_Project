@@ -7,11 +7,15 @@
         max-width: 70%;
         word-wrap: break-word;
     }
+    // & div {
+    //     margin: 0 5px;
+    //     max-width: 50px;
+    // }
     & p:first-child {
         margin: 0 5px;
     }
     & p:last-child {
-        padding: 2px 5px;
+        padding: 8px 5px;
         border-radius: 5px;
         background: #eee;
         color: gray;
@@ -20,6 +24,6 @@
         padding-left: 0.5em;
     }
 }
-.message-container[isMe=true] {
+.message-container[isme=true] {
     flex-direction: row-reverse;
 }

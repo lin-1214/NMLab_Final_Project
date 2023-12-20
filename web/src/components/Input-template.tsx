@@ -8,14 +8,15 @@ interface InputProps {
     label: string;
     icon?: React.ReactNode;
     variant: "standard" | "filled" | "outlined";
+    [x: string]: any;
 }
 
-const Input: React.FC<InputProps> = ({ id, label, icon, variant }) => {
+const Input: React.FC<InputProps> = ({ id, label, icon, variant, ...props }) => {
     const formControlContext = useFormControlContext();
     if (formControlContext === undefined) return null;
     const { value, required, onChange, disabled, onFocus, onBlur } = formControlContext;
     return (
-        <Box sx={{ display: "flex", alignItems: "flex-end" }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {icon}
             <TextField
                 id={id}
@@ -28,6 +29,7 @@ const Input: React.FC<InputProps> = ({ id, label, icon, variant }) => {
                 disabled={disabled}
                 onFocus={onFocus}
                 onBlur={onBlur}
+                {...props}
             />
         </Box>
     );
