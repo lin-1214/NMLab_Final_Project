@@ -51,7 +51,7 @@ const ChatRoomInput: FC<ChatRoomInputProps> = ({ bodyRef, onSubmit }) => {
                 display: "flex",
                 flexDirection: "row",
                 alignContent: "center",
-                justifyContent: "center",
+                justifyContent: "flex-start",
             }}
         >
             <TextField
@@ -66,6 +66,7 @@ const ChatRoomInput: FC<ChatRoomInputProps> = ({ bodyRef, onSubmit }) => {
                     }
                 }}
                 size="small"
+                inputProps={{ style: { fontSize: 15, width: "min(75dvmax,650px)" } }}
                 autoFocus
             ></TextField>
             <div

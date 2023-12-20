@@ -47,7 +47,18 @@ const ChatModal: FC<ChatModalProps> = ({ open, onCreate, onCancel }) => {
                             id="name"
                             label="Chat Room Name"
                             variant="outlined"
-                            icon={<AccountCircle sx={{ color: "action.active", mr: 1, my: 0.5 }} />}
+                            icon={
+                                <AccountCircle
+                                    sx={{
+                                        color: "action.active",
+                                        scale: "200%",
+                                        ml: "10px",
+                                        mr: "10px",
+                                        display: "block",
+                                    }}
+                                />
+                            }
+                            inputProps={{ style: { fontSize: 15, width: "150px", height: "15px" } }}
                         />
                         {filled && !focused && error && <ErrorIcon sx={{ color: "red" }} />}
                     </>

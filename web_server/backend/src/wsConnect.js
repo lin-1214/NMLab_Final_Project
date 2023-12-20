@@ -226,7 +226,11 @@ export default {
             }
         });
         ws.once("close", () => {
-            chatBoxes[ws.box].delete(ws);
+            try {
+                chatBoxes[ws.box].delete(ws);
+            } catch (e) {
+                console.log(e);
+            }
         });
     },
 };
