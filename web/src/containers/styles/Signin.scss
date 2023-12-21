@@ -1,0 +1,73 @@
+.Wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background: url("../../assets/loginBackground2.jpeg");
+  background-size: cover;
+  margin: auto;
+}
+
+.LoginBox {
+  width: 45%;
+  height: 80%;
+  background: rgba($color: #ffffff, $alpha: 0.6);
+  border-radius: 5%;
+  border: 1.2rem solid whitesmoke;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.Intro {
+  font-size: large;
+  font-weight: 600;
+  padding: 2px;
+}
+
+.LoginContent {
+  width: 100%;
+  height: 30%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.RegisterContent {
+  width: 100%;
+  height: 65%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.Tab {
+  width: 100%;
+  height: 10%;
+  padding-left: 2vw;
+  padding-right: 2vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+}
+
+.Logo {
+  width: 40%;
+  height: 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url("../../assets/Logo.jpeg");
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+Button {
+  padding: 2vh;
+}
