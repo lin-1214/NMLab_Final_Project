@@ -1,0 +1,31 @@
+{
+    "name": "iota-test",
+    "version": "0.0.1",
+    "dependencies": {
+        "@iota/identity-wasm": "^1.0.0",
+        "@iota/sdk-wasm": "^1.1.2"
+    },
+    "devDependencies": {
+        "@transmute/did-key-ed25519": "0.3.0-unstable.9",
+        "@types/mocha": "^9.1.0",
+        "@types/node": "^20.10.5",
+        "big-integer": "^1.6.51",
+        "concurrently": "^7.6.0",
+        "copy-webpack-plugin": "^7.0.0",
+        "cypress": "^10.11.0",
+        "cypress-parallel": "^0.9.1",
+        "dprint": "^0.33.0",
+        "fs-extra": "^10.1.0",
+        "jsdoc-to-markdown": "^7.1.1",
+        "mocha": "^9.2.0",
+        "ts-mocha": "^9.0.2",
+        "ts-node": "^10.9.1",
+        "tsconfig-paths": "^4.1.0",
+        "txm": "^8.1.0",
+        "typescript": "^4.7.2",
+        "wasm-opt": "^1.3.0"
+    },
+    "scripts": {
+        "run:example": "tsc && ts-node ./examples/src/main.ts"
+    }
+}
