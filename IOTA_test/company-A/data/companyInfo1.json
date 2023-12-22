@@ -1,0 +1,22 @@
+{
+    "name": "company-A",
+    "id": "did:iota:tst:0x7128ed79cf795e46d44d16c580067d8341fce9f8ed62f2a069a4c83a2d5ec48c",
+    "mnemonic": "album ridge detect party elegant abstract review hazard panic spend fragile dose universe can split regular sound seminar hat rally dust verb victory appear",
+    "url": "https://company-A.org/",
+    "walletAddress": {
+        "type": 0,
+        "pubKeyHash": "0x34f2a623c0c03b310ab8e2fd37c625df8eae084515d5ba014af2ec14fb853a32"
+    },
+    "employees": [
+        {
+            "name": "Alice",
+            "id": "did:iota:tst:0x023bb1ec4101eb0e7ff2d382be2a653bf511b865940f7e02d1c7b59cbaee7cab",
+            "vc": "eyJraWQiOiJkaWQ6aW90YTp0c3Q6MHg3MTI4ZWQ3OWNmNzk1ZTQ2ZDQ0ZDE2YzU4MDA2N2Q4MzQxZmNlOWY4ZWQ2MmYyYTA2OWE0YzgzYTJkNWVjNDhjI2p3ayIsInR5cCI6IkpXVCIsImFsZyI6IkVkRFNBIn0.eyJpc3MiOiJkaWQ6aW90YTp0c3Q6MHg3MTI4ZWQ3OWNmNzk1ZTQ2ZDQ0ZDE2YzU4MDA2N2Q4MzQxZmNlOWY4ZWQ2MmYyYTA2OWE0YzgzYTJkNWVjNDhjIiwibmJmIjoxNzAzMjc0MTEzLCJqdGkiOiJodHRwczovL2NvbXBhbnktYS5vcmcvY3JlZGVudGlhbHMvQWxpY2UiLCJzdWIiOiJkaWQ6aW90YTp0c3Q6MHgwMjNiYjFlYzQxMDFlYjBlN2ZmMmQzODJiZTJhNjUzYmY1MTFiODY1OTQwZjdlMDJkMWM3YjU5Y2JhZWU3Y2FiIiwidmMiOnsiQGNvbnRleHQiOiJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJDb21wYW55RW1wbG95ZWVDcmVkZW50aWFsIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImNvbXBhbnkiOiJodHRwczovL2NvbXBhbnktQS5vcmcvIiwibmFtZSI6IkFsaWNlIn19fQ.FvIsr89G-gzeolvIxaha7eou8mDRQZojNmO0Xd-DayJo3hQrktr5njaRg3ZJVat3Dvq9QCyDQ6IK82M_9RG5Dg"
+        },
+        {
+            "name": "Alice",
+            "id": "did:iota:tst:0xad36a921098026b6b77dc57aa25fc6ec97c465e22b39c04601727c6942463e3d",
+            "vc": "eyJraWQiOiJkaWQ6aW90YTp0c3Q6MHg3MTI4ZWQ3OWNmNzk1ZTQ2ZDQ0ZDE2YzU4MDA2N2Q4MzQxZmNlOWY4ZWQ2MmYyYTA2OWE0YzgzYTJkNWVjNDhjI2p3ayIsInR5cCI6IkpXVCIsImFsZyI6IkVkRFNBIn0.eyJpc3MiOiJkaWQ6aW90YTp0c3Q6MHg3MTI4ZWQ3OWNmNzk1ZTQ2ZDQ0ZDE2YzU4MDA2N2Q4MzQxZmNlOWY4ZWQ2MmYyYTA2OWE0YzgzYTJkNWVjNDhjIiwibmJmIjoxNzAzMjc0MTEzLCJqdGkiOiJodHRwczovL2NvbXBhbnktYS5vcmcvY3JlZGVudGlhbHMvQWxpY2UiLCJzdWIiOiJkaWQ6aW90YTp0c3Q6MHhhZDM2YTkyMTA5ODAyNmI2Yjc3ZGM1N2FhMjVmYzZlYzk3YzQ2NWUyMmIzOWMwNDYwMTcyN2M2OTQyNDYzZTNkIiwidmMiOnsiQGNvbnRleHQiOiJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJDb21wYW55RW1wbG95ZWVDcmVkZW50aWFsIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImNvbXBhbnkiOiJodHRwczovL2NvbXBhbnktQS5vcmcvIiwibmFtZSI6IkFsaWNlIn19fQ.romrEuH6OCfWVCqHnUHukEzd8XonEvF5RMBwV7y6aeAjvBnVjw8ts9hpMNv7-aSEUyUYwtvbBRg8JC_FTB2dBg"
+        }
+    ]
+}

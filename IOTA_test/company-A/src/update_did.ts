@@ -12,13 +12,18 @@ import {
     Service,
     Storage,
     Timestamp,
+    IotaDID,
     VerificationMethod,
 } from "@iota/identity-wasm/node";
 import { AliasOutput, Client, IRent, MnemonicSecretManager, Utils } from "@iota/sdk-wasm/node";
 import { API_ENDPOINT, createDid } from "../util";
 
 /** Demonstrates how to update a DID document in an existing Alias Output. */
-export async function updateIdentity() {
+export async function updateVerificationMethod(
+    DID_id: string,
+    DID_mnemonic: string,
+    storage: Storage
+) {
     const client = new Client({
         primaryNode: API_ENDPOINT,
         localPow: true,
@@ -27,50 +32,41 @@ export async function updateIdentity() {
 
     // Generate a random mnemonic for our wallet.
     const secretManager: MnemonicSecretManager = {
-        mnemonic: Utils.generateMnemonic(),
+        mnemonic: DID_mnemonic,
     };
-
+    const DID = IotaDID.parse(DID_id);
+    const document = await didClient.resolveDid(DID);
     // Creates a new wallet and identity (see "0_create_did" example).
-    const storage: Storage = new Storage(new JwkMemStore(), new KeyIdMemStore());
-    let { document, fragment } = await createDid(client, secretManager, storage);
+    // const storage: Storage = new Storage(new JwkMemStore(), new KeyIdMemStore());
     const did = document.id();
-
-    // Resolve the latest state of the document.
-    // Technically this is equivalent to the document above.
-    document = await didClient.resolveDid(did);
-
-    let _frag = "#key-2";
+    // let originalMethod = document.resolveMethod(fragment) as VerificationMethod;
+    // await document.purgeMethod(storage, originalMethod?.id());
+    // Insert a new Ed25519 verification method in the DID document.
+    let _frag = "#jwk";
     try {
         // Remove a verification method.
         let originalMethod = document.resolveMethod(_frag) as VerificationMethod;
-        await document.purgeMethod(storage, originalMethod?.id());
+        document.removeMethod(originalMethod?.id());
+        // await document.purgeMethod(storage, originalMethod?.id());
     } catch (e) {
         console.log("No method to purge");
+        console.log("---------------");
     }
-    // Insert a new Ed25519 verification method in the DID document.
+
+    const frag = "#jwk";
     await document.generateMethod(
         storage,
         JwkMemStore.ed25519KeyType(),
         JwsAlgorithm.EdDSA,
-        _frag,
+        frag,
         MethodScope.VerificationMethod()
     );
-
     // Attach a new method relationship to the inserted method.
-    document.attachMethodRelationship(did.join(_frag), MethodRelationship.Authentication);
-
-    // Add a new Service.
-    const service: Service = new Service({
-        id: did.join("#linked-domain"),
-        type: "LinkedDomains",
-        serviceEndpoint: "https://iota.org/",
-    });
-    document.insertService(service);
+    document.attachMethodRelationship(did.join(frag), MethodRelationship.Authentication);
     document.setMetadataUpdated(Timestamp.nowUTC());
 
     // Resolve the latest output and update it with the given document.
     let aliasOutput: AliasOutput = await didClient.updateDidOutput(document);
-
     // Because the size of the DID document increased, we have to increase the allocated storage deposit.
     // This increases the deposit amount to the new minimum.
     const rentStructure: IRent = await didClient.getRentStructure();
@@ -81,8 +77,11 @@ export async function updateIdentity() {
         aliasId: aliasOutput.getAliasId(),
         unlockConditions: aliasOutput.getUnlockConditions(),
     });
-
     // Publish the output.
-    const updated: IotaDocument = await didClient.publishDidOutput(secretManager, aliasOutput);
-    console.log("Updated DID document:", JSON.stringify(updated, null, 2));
+    try {
+        const updated: IotaDocument = await didClient.publishDidOutput(secretManager, aliasOutput);
+        // console.log("Updated DID document:", JSON.stringify(updated, null, 2));
+    } catch (e) {
+        console.log("Error: ", e);
+    }
 }

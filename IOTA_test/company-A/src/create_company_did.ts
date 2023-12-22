@@ -1,6 +1,6 @@
 // Copyright 2020-2023 IOTA Stiftung
 // SPDX-License-Identifier: Apache-2.0
-
+// modified from IOTA examples 0_basic/1_update_did.ts
 import {
     IotaDocument,
     IotaIdentityClient,
@@ -18,7 +18,7 @@ import { AliasOutput, Client, IRent, MnemonicSecretManager, Utils } from "@iota/
 import { API_ENDPOINT, createDid } from "../util";
 
 /** Demonstrates how to update a DID document in an existing Alias Output. */
-export async function updateIdentity() {
+export async function create_company(name: string = "company-A") {
     const client = new Client({
         primaryNode: API_ENDPOINT,
         localPow: true,
@@ -26,44 +26,22 @@ export async function updateIdentity() {
     const didClient = new IotaIdentityClient(client);
 
     // Generate a random mnemonic for our wallet.
+    const mnemonic = Utils.generateMnemonic();
     const secretManager: MnemonicSecretManager = {
-        mnemonic: Utils.generateMnemonic(),
+        mnemonic: mnemonic,
     };
-
     // Creates a new wallet and identity (see "0_create_did" example).
     const storage: Storage = new Storage(new JwkMemStore(), new KeyIdMemStore());
-    let { document, fragment } = await createDid(client, secretManager, storage);
+    let { address, document, fragment } = await createDid(client, secretManager, storage);
     const did = document.id();
-
-    // Resolve the latest state of the document.
-    // Technically this is equivalent to the document above.
-    document = await didClient.resolveDid(did);
-
-    let _frag = "#key-2";
-    try {
-        // Remove a verification method.
-        let originalMethod = document.resolveMethod(_frag) as VerificationMethod;
-        await document.purgeMethod(storage, originalMethod?.id());
-    } catch (e) {
-        console.log("No method to purge");
-    }
-    // Insert a new Ed25519 verification method in the DID document.
-    await document.generateMethod(
-        storage,
-        JwkMemStore.ed25519KeyType(),
-        JwsAlgorithm.EdDSA,
-        _frag,
-        MethodScope.VerificationMethod()
-    );
-
-    // Attach a new method relationship to the inserted method.
-    document.attachMethodRelationship(did.join(_frag), MethodRelationship.Authentication);
+    console.log("Document fragment:", fragment);
 
     // Add a new Service.
     const service: Service = new Service({
-        id: did.join("#linked-domain"),
-        type: "LinkedDomains",
-        serviceEndpoint: "https://iota.org/",
+        id: did.join("#company-info"),
+        type: "CompanyInfo",
+        serviceEndpoint: `https://${name.replace(" ", "")}.org/`,
+        properties: new Map<string, string>([["CompanyName", name]]),
     });
     document.insertService(service);
     document.setMetadataUpdated(Timestamp.nowUTC());
@@ -85,4 +63,5 @@ export async function updateIdentity() {
     // Publish the output.
     const updated: IotaDocument = await didClient.publishDidOutput(secretManager, aliasOutput);
     console.log("Updated DID document:", JSON.stringify(updated, null, 2));
+    return [address, updated.id().toString(), mnemonic];
 }

@@ -3,8 +3,10 @@ import {
     IotaIdentityClient,
     JwkMemStore,
     JwsAlgorithm,
+    MethodDigest,
     MethodScope,
     Storage,
+    VerificationMethod,
 } from "@iota/identity-wasm/node";
 import {
     type Address,
@@ -14,9 +16,9 @@ import {
     SecretManager,
     SecretManagerType,
     Utils,
+    migrateStrongholdSnapshotV2ToV3,
 } from "@iota/sdk-wasm/node";
 
-// NMLAB IOTA testnet node
 export const API_ENDPOINT = "http://140.112.18.202:14265/";
 export const FAUCET_ENDPOINT = "http://140.112.18.202:8091/api/enqueue";
 
@@ -72,7 +74,8 @@ export async function createDid(
 
     // Publish the Alias Output and get the published DID document.
     const published = await didClient.publishDidOutput(secretManager, aliasOutput);
-
+    // console.log(storage.keyIdStorage().getKeyId(new MethodDigest(new VerificationMethod())));
+    // console.log(storage.keyStorage().generate("jwk", JwsAlgorithm.EdDSA));
     return { address, document: published, fragment };
 }
 

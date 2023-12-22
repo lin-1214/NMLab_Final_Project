@@ -8,6 +8,7 @@ import {
     JwkMemStore,
     JwsAlgorithm,
     KeyIdMemStore,
+    MethodDigest,
     MethodScope,
     Storage,
 } from "@iota/identity-wasm/node";
@@ -29,6 +30,7 @@ export async function createIdentity(): Promise<{
 }> {
     let start = Date.now();
     const start_time = start;
+    /////////////////////////////////////////////////////////////
     const client = new Client({
         primaryNode: API_ENDPOINT,
         localPow: true,
@@ -87,7 +89,7 @@ export async function createIdentity(): Promise<{
     start = Date.now();
     /////////////////////////////////////////////////////////////
     // Insert a new Ed25519 verification method in the DID document.
-    await document.generateMethod(
+    const fragment = await document.generateMethod(
         storage,
         JwkMemStore.ed25519KeyType(),
         JwsAlgorithm.EdDSA,
@@ -112,7 +114,7 @@ export async function createIdentity(): Promise<{
     console.log("Published DID document:", JSON.stringify(published, null, 2));
     /////////////////////////////////////////////////////////////
     console.log("Alias Output published in", Date.now() - start, "ms");
-    console.log("Total time:", Date.now() - start, "ms");
+    console.log("Total time:", Date.now() - start_time, "ms");
     /////////////////////////////////////////////////////////////
     return {
         didClient,
