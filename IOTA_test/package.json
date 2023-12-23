@@ -29,6 +29,8 @@
     },
     "scripts": {
         "run:example": "tsc && ts-node ./examples/src/main.ts",
-        "run:company-A": "tsc && ts-node ./company-A/main.ts"
+        "BR:company": "tsc && ts-node ./method/main.ts",
+        "build:company": "tsc",
+        "run:company": "ts-node ./method/main.ts"
     }
 }
