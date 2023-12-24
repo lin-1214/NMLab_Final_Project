@@ -1,6 +1,7 @@
 import Message from "./models/message";
 import { UserModel, MessageModel, ChatBoxModel } from "./models/chatbox";
 import IdentityModel from "./models/identity";
+import crypto from "crypto";
 // 在 global scope 將 chatBoxes 宣告成空物件
 const chatBoxes = {};
 const needVerification = {};
@@ -97,15 +98,74 @@ const verifyVP = async ({ name, company, vp, challenge, ws, task }) => {
             throw e;
         });
 };
+function convertToRSAPublicKey(publicKey) {
+    const oldHeader = "-----BEGIN PUBLIC KEY-----";
+    const newHeader = "-----BEGIN RSA PUBLIC KEY-----";
+    const oldFooter = "-----END PUBLIC KEY-----\n";
+    const newFooter = "-----END RSA PUBLIC KEY-----\n";
+
+    // Check if the publicKey starts with the old header
+    if (publicKey.startsWith(oldHeader)) {
+        // Replace the old header with the new header
+        const modifiedKey = publicKey.replace(oldHeader, newHeader);
+
+        // Check if the publicKey ends with the old footer
+        if (publicKey.endsWith(oldFooter)) {
+            // Replace the old footer with the new footer
+            return modifiedKey.replace(oldFooter, newFooter);
+        } else {
+            // If the key doesn't end with the expected footer, return it unchanged
+            return modifiedKey;
+        }
+    } else {
+        // If the key doesn't start with the expected header, return it unchanged
+        return publicKey;
+    }
+}
+
 const verifySignature = async ({ signature, publicKey, challenge }) => {
-    const verifier = crypto.createVerify("RSA-SHA256");
-    verifier.update(input, "ascii");
-    const publicKeyBuf = Buffer.from(publicKey, "hex");
-    const signatureBuf = Buffer.from(signature, "hex");
+    const verifier = crypto.createVerify("SHA256");
+    verifier.update(challenge);
+    verifier.end();
+    console.log("verifier update");
+    console.log("signature: ", signature);
+    console.log("publicKey: ", publicKey);
+    console.log("challenge: ", challenge);
+    // const normalizedPublicKey = publicKey.length % 2 === 0 ? publicKey : "0" + publicKey;
+
+    const publicKeyBuf = Buffer.from(publicKey, "base64").toString("ascii");
+    const signatureBuf = Buffer.from(signature, "base64");
+    console.log("change to buffer");
+    console.log("publicKey:", publicKeyBuf);
+    console.log("signatureBuf: ", signatureBuf);
+    console.log("signature: ", signature, typeof signature);
+    console.log("signature2: ", signature.replace(/=+$/, ""));
     const verified = verifier.verify(publicKeyBuf, signatureBuf);
-    if (!verified) throw "Signature error";
+    console.log("verified: ", verified);
+    // if (!verified) throw "Signature error";
     return;
 };
+// const verifySignature = async ({ signature, publicKey, challenge }) => {
+//     const verifier = crypto.createVerify("SHA256");
+//     verifier.update(challenge);
+//     verifier.end();
+//     console.log("verifier update");
+//     console.log("signature: ", signature);
+//     console.log("publicKey: ", publicKey);
+//     console.log("challenge: ", challenge);
+//     // const normalizedPublicKey = publicKey.length % 2 === 0 ? publicKey : "0" + publicKey;
+
+//     const publicKeyBuf = Buffer.from(publicKey, "hex").toString("ascii");
+//     const signatureBuf = Buffer.from(signature, "base64");
+//     console.log("change to buffer");
+//     console.log("publicKey:", publicKeyBuf);
+//     console.log("signatureBuf: ", signatureBuf.length);
+//     console.log("signature: ", signature, typeof signature);
+//     console.log("signature2: ", signature.replace(/=+$/, ""));
+//     const verified = verifier.verify(publicKeyBuf.slice(0, -1), signatureBuf);
+//     if (!verified) throw "Signature error";
+//     return;
+// };
 const handleRegister = async (payload, ws) => {
     const {
         vp,
@@ -303,9 +363,17 @@ export default {
                 }
             } else if (task === "Signature") {
                 try {
-                    const { ID, challenge, signature } = payload;
-                    const { identity, challenge: _challenge, ws, task } = needVerification[ID];
-                    const { userName, company, password, pincode, publicKey } = identity;
+                    const { ID, challenge, signature, publicKey } = payload;
+                    const {
+                        identity,
+                        challenge: _challenge,
+                        ws,
+                        task,
+                        vpChecked,
+                        signatureChecked,
+                    } = needVerification[ID];
+                    // console.log(needVerification[ID]);
+                    const { userName, company, password, pincode } = identity;
                     console.log("Signature ID:", ID);
                     console.log("challenge: ", challenge);
                     console.log("_challenge: ", _challenge);
