@@ -1,0 +1,16 @@
+{
+    "name": "NMLAB",
+    "id": "did:iota:tst:0x85a1d8576a5608eba65834e11def973a3eeb49a208b4fe75bcadb704a59700c2",
+    "mnemonic": "neither name announce swing bomb coast oval jelly erase come hello melody deputy stem two traffic creek sand borrow extra laugh drift extend album",
+    "url": "https://NMLAB.org/",
+    "walletAddress": {
+        "type": 0,
+        "pubKeyHash": "0x7c270e88a913da25506adbc8173ab70ed7e7e73fed50d3a892f4361b899c420f"
+    },
+    "employees": [
+        {
+            "name": "JNW",
+            "id": "did:iota:tst:0x073e7e5a3bbfe639a56f45aea56f47a41e84a771fbe03cc4f6bb49330461a663"
+        }
+    ]
+}
