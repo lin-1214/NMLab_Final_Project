@@ -21,7 +21,7 @@ export const ChatBoxesWrapper = styled(Tabs)`
 `;
 export const ChatBox = styled.div`
   width: 100%;
-  height: min(75vh, 650px);
+  height: min(68vh, 650px);
   background: #eeeeee52;
   padding: 10px;
   overflow: auto;
