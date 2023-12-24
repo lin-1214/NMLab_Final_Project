@@ -93,7 +93,7 @@ export async function createVP(
     // ===========================================================================
     // Step 6: Holder sends a verifiable presentation to the verifier.
     // ===========================================================================
-    console.log(`Sending presentation (as JWT) to the verifier`, unsignedVp.toJSON());
+    // console.log(`Sending presentation (as JWT) to the verifier`, unsignedVp.toJSON());
 
     // ===========================================================================
     // Step 7: Verifier receives the Verifiable Presentation and verifies it.

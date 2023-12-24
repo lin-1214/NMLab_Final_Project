@@ -86,7 +86,7 @@ export async function createVC(
         unsignedVc,
         new JwsSignatureOptions()
     );
-    console.log(`Credential JWT > ${credentialJwt.toString()}`);
+    // console.log(`Credential JWT > ${credentialJwt.toString()}`);
 
     // Before sending this credential to the holder the issuer wants to validate that some properties
     // of the credential satisfy their expectations.
@@ -106,8 +106,6 @@ export async function createVC(
 
     // The issuer is now sure that the credential they are about to issue satisfies their expectations.
     // Note that the credential is NOT published to the IOTA Tangle. It is sent and stored off-chain.
-    console.log(
-        `Issued credential: ${JSON.stringify(decoded_credential.intoCredential(), null, 2)}`
-    );
+    // console.log(`Issued credential: ${JSON.stringify(decoded_credential.intoCredential(), null, 2)}`);
     return credentialJwt.toString();
 }

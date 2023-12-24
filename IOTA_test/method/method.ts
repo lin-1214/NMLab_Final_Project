@@ -156,19 +156,26 @@ export async function create_employees_vp(
 export async function verify_employees_vp(
     employeeName: string,
     challenge: string,
-    companySourcePath: string
+    companySourcePath: string,
+    vp?: string
 ) {
     if (!challenge || challenge === "") throw "challenge is required";
-    const companyInfo = JSON.parse(readFileSync(companySourcePath, "utf-8"));
-    const { employees: vp_employees5 } = companyInfo;
-    const targetEmployee = vp_employees5.find((e: EmployeeProps) => e.name === employeeName);
-    if (!targetEmployee) {
-        throw "Employee not found";
-    } else if (!targetEmployee.vp) {
-        throw "Employee VP not found";
+    if (!vp || vp === "") {
+        // for testing purpose
+        const companyInfo = JSON.parse(readFileSync(companySourcePath, "utf-8"));
+        const { employees: vp_employees5 } = companyInfo;
+        const targetEmployee = vp_employees5.find((e: EmployeeProps) => e.name === employeeName);
+        if (!targetEmployee) {
+            throw "Employee not found";
+        } else if (!targetEmployee.vp) {
+            throw "Employee VP not found";
+        }
+        console.log(`${employeeName} DID updated`);
+        const verified = await verifyVP(targetEmployee.vp, challenge);
+        console.log("VP verified:", verified);
+    } else {
+        const verified = await verifyVP(vp, challenge);
+        console.log("VP verified:", verified);
     }
-    console.log(`${employeeName} DID updated`);
-    const verified = await verifyVP(targetEmployee.vp, challenge);
-    console.log("VP verified:", verified);
     return true;
 }

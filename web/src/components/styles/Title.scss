@@ -3,8 +3,10 @@
   align-items: center;
   justify-content: center;
   // width: 100%;
-  & h1 {
+  :first-child {
     margin: 0;
-    font-size: 3rem;
+    font-size: min(3.5dvw,3rem);
+    white-space: nowrap;
+    overflow: hidden;
   }
 }
