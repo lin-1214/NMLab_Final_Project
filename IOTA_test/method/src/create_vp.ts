@@ -164,5 +164,5 @@ export async function createVP(
 
     // Since no errors were thrown we know that the validation was successful.
     console.log(`VP successfully validated`);
-    return presentationJwt.toJSON();
+    return presentationJwt.toString();
 }
