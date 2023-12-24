@@ -6,7 +6,7 @@ interface TitleProps {
   children?: React.ReactNode;
 }
 
-const Title: FC<TitleProps> = ({ children, name }) => {
+const Title: FC<TitleProps> = ({ name, children }) => {
   return (
     <div className="Title">
       <h1>Stellar Secrete Conclave✨</h1>

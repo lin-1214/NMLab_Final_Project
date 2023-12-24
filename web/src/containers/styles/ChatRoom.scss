@@ -1,32 +1,53 @@
-
 .wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    width: 100vw;
-    margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  margin: auto;
+}
+
+.ChatRoomBackground {
+  width: 100%;
+  height: 100%;
+  background: #faeed1;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ChatBoxTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 40vw;
+  color: black;
+  // width: 100%;
+  & h1 {
+    margin: 0;
+    font-size: 3rem;
+  }
 }
 
 .chatBoxWrapper {
-    width: 100%;
-    height: 70vh;
-    background: #eeeeee52;
-    border-radius: 10px;
-    margin: 20px;
-    padding: 20px;
-    overflow: auto;
+  width: 100%;
+  height: 65vh;
+  background: #eeeeee52;
+  border-radius: 10px;
+  margin: 20px;
+  padding: 20px;
+  overflow: auto;
 }
 
 .chatBox {
-    width: 100%;
-    height: 55vh;
-    background: #eeeeee52;
-    padding: 10px;
-    overflow: auto;
+  width: 100%;
+  height: 55vh;
+  background: #eeeeee52;
+  padding: 10px;
+  overflow: auto;
 }
-
 .footRef {
-    height: 40px;
+  height: 40px;
 }
