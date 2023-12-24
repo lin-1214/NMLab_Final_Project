@@ -5,7 +5,7 @@ import { messageTypes, sendDataTypes, verificationTypes } from "../types";
 import { useUserData } from "./useUserData";
 const backendURL = "localhost:4000";
 const IOTAURL = "localhost:4096";
-const RPiURL = "192.168.2.2:8000";
+const RPiURL = "raspberrypi.local:8000";
 var mainServerClient = new WebSocket(`ws://${backendURL}`);
 var localRPiClient = new WebSocket(`ws://${RPiURL}`);
 // var IOTAServerClient = new WebSocket(`ws://${IOTAURL}`);
@@ -90,22 +90,22 @@ const useChat = () => {
 
     // TODO: change sendData to sendCryptoData if send to rpi
     const sendRPiData = async (data: string, attempt = 0) => {
-        const dataObj = JSON.parse(data);
-        if (dataObj.state === "login") {
-            console.log("send login data");
-            sendData(["Login", dataObj]);
-        } else if (dataObj.state === "register") {
-            console.log("send register data");
-            sendData(["Register", dataObj]);
-        }
-        // safeSendData(
-        //     JSON.stringify(data),
-        //     myClients,
-        //     clientKey.RPi,
-        //     RPiClientOnMsg,
-        //     "RPi Connnection Failed",
-        //     attempt
-        // );
+        // const dataObj = JSON.parse(data);
+        // if (dataObj.state === "login") {
+        //     console.log("send login data");
+        //     sendData(["Login", dataObj]);
+        // } else if (dataObj.state === "register") {
+        //     console.log("send register data");
+        //     sendData(["Register", dataObj]);
+        // }
+        safeSendData(
+            JSON.stringify(data),
+            myClients,
+            clientKey.RPi,
+            RPiClientOnMsg,
+            "RPi Connnection Failed",
+            attempt
+        );
     };
     // const sendIOTAData = async (data: [sendDataTypes, messageTypes], attempt = 0) => {
     //     safeSendData(
@@ -211,7 +211,14 @@ const useChat = () => {
             }
             case "VP": {
                 const { ID, challenge } = payload;
-                await askVP({ company, name: userName, challenge, askID: ID });
+                if (localRPiClient.readyState !== localRPiClient.OPEN) {
+                    await askVP({ company, name: userName, challenge, askID: ID });
+                } else {
+                    await Promise.all([
+                        askVP({ company, name: userName, challenge, askID: ID }),
+                        sendRPiData(JSON.stringify({ state: "sign", message: challenge })),
+                    ]);
+                }
                 break;
             }
             default:
@@ -221,21 +228,26 @@ const useChat = () => {
     const RPiClientOnMsg = (byteString: MessageEvent<string>) => {
         const { data } = byteString;
         const [task, payload] = JSON.parse(data.replace(/'/g, '"'));
-        console.log("RPi receive: ", task);
+        console.log("from RPi receive: ", task);
+        console.log("from RPi receive payload: ", payload);
         // const client = myClients[clientKey.RPi];
-        sendData([task, payload]);
+        // sendData([task, payload]);
         switch (task) {
             // send to backend
             case "Register": {
-                sendData(["Register", JSON.parse(payload.replace(/'/g, '"'))]);
+                sendData(["Register", payload]);
                 break;
             }
             case "Login": {
-                sendData(["Login", JSON.parse(payload.replace(/'/g, '"'))]);
+                sendData(["Login", payload]);
                 break;
             }
-            case "MESSAGE": {
-                sendData(["MESSAGE", JSON.parse(payload.replace(/'/g, '"'))]);
+            case "Signature": {
+                sendData(["Signature", payload]);
+                break;
+            }
+            case "Message": {
+                sendData(["MESSAGE", payload]);
                 break;
             }
             default:
@@ -281,6 +293,7 @@ const useChat = () => {
         state: string;
         userName: string;
         password: string;
+        company: string;
     }) => {
         payload.password = await digestMessage(payload.password).then((hash) => hash.toString());
         sendRPiData(JSON.stringify(payload));

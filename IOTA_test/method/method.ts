@@ -172,10 +172,12 @@ export async function verify_employees_vp(
         }
         console.log(`${employeeName} DID updated`);
         const verified = await verifyVP(targetEmployee.vp, challenge);
-        console.log("VP verified:", verified);
+        console.log("VP verified1:", verified);
+        if (!verified.status) throw "Verification failed";
     } else {
         const verified = await verifyVP(vp, challenge);
-        console.log("VP verified:", verified);
+        console.log("VP verified2:", verified);
+        if (!verified.status) throw "Verification failed";
     }
     return true;
 }

@@ -97,37 +97,76 @@ const verifyVP = async ({ name, company, vp, challenge, ws, task }) => {
             throw e;
         });
 };
-
+const verifySignature = async ({ signature, publicKey, challenge }) => {
+    const verifier = crypto.createVerify("RSA-SHA256");
+    verifier.update(input, "ascii");
+    const publicKeyBuf = Buffer.from(publicKey, "hex");
+    const signatureBuf = Buffer.from(signature, "hex");
+    const verified = verifier.verify(publicKeyBuf, signatureBuf);
+    if (!verified) throw "Signature error";
+    return;
+};
 const handleRegister = async (payload, ws) => {
-    const { vp, challenge, userName, password, pincode, signature, publicKey, company } = payload;
-    console.log("handleRegister", company);
-    try {
-        await verifyVP({ name: userName, company, vp, challenge, ws, task: "Register" });
-        sendData(["Register", { state: "success" }], ws);
-    } catch (e) {
-        return;
-    }
-    console.log("handleRegister", payload);
-    const _identity = new IdentityModel({
+    const {
+        vp,
+        challenge,
         userName,
         password,
         pincode,
         signature,
         publicKey,
         company,
-    });
-    await _identity.save();
+        vpChecked,
+        signatureChecked,
+    } = payload;
+    console.log("handleRegister", company);
+    if (!vp && !signature) throw "VP and Signature are both empty";
+    if (vp && !vpChecked) {
+        try {
+            await verifyVP({ name: userName, company, vp, challenge, ws, task: "Register" });
+        } catch (e) {
+            throw `VP error: ${e}`;
+        }
+    }
+    if (signature && !signatureChecked) {
+        try {
+            await verifySignature({ signature, publicKey, challenge });
+        } catch (e) {
+            throw `Signature error: ${e}`;
+        }
+    }
+
     console.log("handleRegister success");
     return;
 };
 const handleLogin = async (payload, ws) => {
-    const { vp, challenge, userName, password, company } = payload;
-    try {
-        await verifyVP({ name: userName, company, vp, challenge, ws, task: "Login" });
-        sendData(["Login", { state: "success" }], ws);
-    } catch (e) {
-        return;
+    const {
+        vp,
+        challenge,
+        userName,
+        password,
+        signature,
+        publicKey,
+        company,
+        vpChecked,
+        signatureChecked,
+    } = payload;
+    if (!vp && !signature) throw "VP and Signature are both empty";
+    if (vp && !vpChecked) {
+        try {
+            await verifyVP({ name: userName, company, vp, challenge, ws, task: "Login" });
+        } catch (e) {
+            throw `VP error: ${e}`;
+        }
     }
+    if (signature && !signatureChecked) {
+        try {
+            await verifySignature({ signature, publicKey, challenge });
+        } catch (e) {
+            throw `Signature error: ${e}`;
+        }
+    }
+    console.log("handleLogin success");
     return;
 };
 export default {
@@ -152,6 +191,8 @@ export default {
                     ws,
                     challenge,
                     task: "Register",
+                    vpChecked: false,
+                    signatureChecked: false,
                 };
                 sendData(["VP", { ID: verificationID, challenge }], ws);
                 return;
@@ -183,14 +224,23 @@ export default {
                     ws,
                     challenge,
                     task: "Login",
+                    vpChecked: false,
+                    signatureChecked: false,
                 };
                 sendData(["VP", { ID: verificationID, challenge }], ws);
                 return;
             } else if (task === "VP") {
                 try {
                     const { ID, challenge, vp } = payload;
-                    const { identity, challenge: _challenge, ws, task } = needVerification[ID];
-                    const { userName, company, password, pincode, signature, publicKey } = identity;
+                    const {
+                        identity,
+                        challenge: _challenge,
+                        ws,
+                        task,
+                        vpChecked,
+                        signatureChecked,
+                    } = needVerification[ID];
+                    const { userName, company, password, pincode, publicKey } = identity;
                     console.log("VP ID:", ID);
                     console.log("challenge: ", challenge);
                     console.log("_challenge: ", _challenge);
@@ -198,20 +248,122 @@ export default {
                     if (challenge !== _challenge) throw "challenge error";
                     if (task === "Register") {
                         await handleRegister(
-                            { userName, company, password, pincode, signature, publicKey },
+                            {
+                                userName,
+                                company,
+                                password,
+                                pincode,
+                                publicKey,
+                                vp,
+                                challenge,
+                                vpChecked,
+                                signatureChecked,
+                            },
                             ws
                         );
+                        needVerification[ID].vpChecked = true;
+                        if (needVerification[ID].signatureChecked) {
+                            sendData(["Register", { state: "success" }], ws);
+                            const _identity = new IdentityModel({
+                                userName,
+                                password,
+                                pincode,
+                                signature,
+                                publicKey,
+                                company,
+                            });
+                            await _identity.save();
+                        }
                     }
                     if (task === "Login") {
                         await handleLogin(
-                            { userName, company, password, pincode, signature, publicKey },
+                            {
+                                userName,
+                                company,
+                                password,
+                                pincode,
+                                publicKey,
+                                vp,
+                                challenge,
+                                vpChecked,
+                                signatureChecked,
+                            },
                             ws
                         );
+                        needVerification[ID].vpChecked = true;
+                        if (needVerification[ID].signatureChecked) {
+                            sendData(["Login", { state: "success" }], ws);
+                        }
                     }
                     return;
                 } catch (e) {
                     sendStatus({ type: "error", msg: "VP error" }, ws);
                     console.error("VP error:", e);
+                    return;
+                }
+            } else if (task === "Signature") {
+                try {
+                    const { ID, challenge, signature } = payload;
+                    const { identity, challenge: _challenge, ws, task } = needVerification[ID];
+                    const { userName, company, password, pincode, publicKey } = identity;
+                    console.log("Signature ID:", ID);
+                    console.log("challenge: ", challenge);
+                    console.log("_challenge: ", _challenge);
+                    console.log("company: ", identity);
+                    if (challenge !== _challenge) throw "challenge error";
+                    if (task === "Register") {
+                        await handleRegister(
+                            {
+                                userName,
+                                company,
+                                password,
+                                pincode,
+                                signature,
+                                publicKey,
+                                challenge,
+                                vpChecked,
+                                signatureChecked,
+                            },
+                            ws
+                        );
+                        needVerification[ID].signatureChecked = true;
+                        if (needVerification[ID].vpChecked) {
+                            sendData(["Register", { state: "success" }], ws);
+                            const _identity = new IdentityModel({
+                                userName,
+                                password,
+                                pincode,
+                                signature,
+                                publicKey,
+                                company,
+                            });
+                            await _identity.save();
+                        }
+                    }
+                    if (task === "Login") {
+                        await handleLogin(
+                            {
+                                userName,
+                                company,
+                                password,
+                                pincode,
+                                signature,
+                                publicKey,
+                                challenge,
+                                vpChecked,
+                                signatureChecked,
+                            },
+                            ws
+                        );
+                        needVerification[ID].signatureChecked = true;
+                        if (needVerification[ID].vpChecked) {
+                            sendData(["Login", { state: "success" }], ws);
+                        }
+                    }
+                    return;
+                } catch (e) {
+                    sendStatus({ type: "error", msg: "Signature error" }, ws);
+                    console.error("Signature error:", e);
                     return;
                 }
             }

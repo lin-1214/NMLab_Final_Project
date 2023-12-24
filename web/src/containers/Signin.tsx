@@ -35,6 +35,7 @@ const SignIn = () => {
         state: string;
         userName: string;
         password: string;
+        company: string;
     }
 
     const {
@@ -100,6 +101,8 @@ const SignIn = () => {
             handleWait(() => {
                 console.log("Sign up success");
                 setSignedIn(true);
+                setCheckPassword("");
+                setEnteredPassword("");
             });
         }
     };
@@ -117,14 +120,18 @@ const SignIn = () => {
             state: "login",
             userName: enteredName,
             password: enteredPassword,
+            company: enteredCompany,
         };
         // TODO: Check info in database
         sendLoginData(payload);
         setNowUser(enteredName);
         setNowPassword(enteredPassword);
+        setCompany(enteredCompany);
         handleWait(() => {
             console.log("Sign in success");
             setSignedIn(true);
+            setCheckPassword("");
+            setEnteredPassword("");
         });
     };
 
@@ -187,6 +194,16 @@ const SignIn = () => {
                             />
                         </FormControl>
                         <FormControl sx={{ m: 1, width: "30dvw" }} variant="outlined">
+                            <InputLabel htmlFor="outlined-adornment-company">Company</InputLabel>
+                            <OutlinedInput
+                                id="outlined-adornment-company"
+                                label="Company"
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                                    setEnteredCompany(event.target.value)
+                                }
+                            />
+                        </FormControl>
+                        <FormControl sx={{ m: 1, width: "30dvw" }} variant="outlined">
                             <InputLabel htmlFor="outlined-adornment-password">Password</InputLabel>
                             <OutlinedInput
                                 id="outlined-adornment-password"
@@ -209,44 +226,24 @@ const SignIn = () => {
                                 label="Password"
                             />
                         </FormControl>
-                        {enteredName === "" || enteredPassword === "" ? (
-                            <Button
-                                variant="contained"
-                                endIcon={
-                                    waitingForVerify ? (
-                                        !verifyFail ? (
-                                            <CircularProgress color="inherit" size={20} />
-                                        ) : (
-                                            <DangerousIcon color="inherit" />
-                                        )
+                        <Button
+                            variant="contained"
+                            endIcon={
+                                waitingForVerify ? (
+                                    !verifyFail ? (
+                                        <CircularProgress color="inherit" size={20} />
                                     ) : (
-                                        <SendIcon />
+                                        <DangerousIcon color="inherit" />
                                     )
-                                }
-                                disabled
-                            >
-                                SignIn
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="contained"
-                                endIcon={
-                                    waitingForVerify ? (
-                                        !verifyFail ? (
-                                            <CircularProgress color="inherit" size={20} />
-                                        ) : (
-                                            <DangerousIcon color="inherit" />
-                                        )
-                                    ) : (
-                                        <SendIcon />
-                                    )
-                                }
-                                color={verifyFail ? "error" : "primary"}
-                                onClick={handleSignIn}
-                            >
-                                SignIn
-                            </Button>
-                        )}
+                                ) : (
+                                    <SendIcon />
+                                )
+                            }
+                            onClick={handleSignIn}
+                            disabled={enteredName === "" || enteredPassword === ""}
+                        >
+                            SignIn
+                        </Button>
                     </div>
                 ) : (
                     <div className="RegisterContent">
@@ -257,6 +254,16 @@ const SignIn = () => {
                                 label="Username"
                                 onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                                     setEnteredName(event.target.value)
+                                }
+                            />
+                        </FormControl>
+                        <FormControl sx={{ m: 1, width: "30dvw" }} variant="outlined">
+                            <InputLabel htmlFor="outlined-adornment-company">Company</InputLabel>
+                            <OutlinedInput
+                                id="outlined-adornment-company"
+                                label="Company"
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                                    setEnteredCompany(event.target.value)
                                 }
                             />
                         </FormControl>
@@ -339,56 +346,30 @@ const SignIn = () => {
                         </FormControl> */}
 
                         {/* Useless */}
-                        <FormControl sx={{ m: 1, width: "30dvw" }} variant="outlined">
-                            <InputLabel htmlFor="outlined-adornment-company">
-                                Company (Optional)
-                            </InputLabel>
-                            <OutlinedInput
-                                id="outlined-adornment-company"
-                                label="Company (Optional)"
-                                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
-                                    setEnteredCompany(event.target.value)
-                                }
-                            />
-                        </FormControl>
-                        {enteredName === "" || enteredPassword === "" ? (
-                            <Button
-                                variant="contained"
-                                endIcon={
-                                    waitingForVerify ? (
-                                        !verifyFail ? (
-                                            <CircularProgress color="inherit" size={20} />
-                                        ) : (
-                                            <DangerousIcon color="inherit" />
-                                        )
+
+                        <Button
+                            variant="contained"
+                            endIcon={
+                                waitingForVerify ? (
+                                    !verifyFail ? (
+                                        <CircularProgress color="inherit" size={20} />
                                     ) : (
-                                        <SendIcon />
+                                        <DangerousIcon color="inherit" />
                                     )
-                                }
-                                disabled
-                            >
-                                SignUp
-                            </Button>
-                        ) : (
-                            <Button
-                                variant="contained"
-                                endIcon={
-                                    waitingForVerify ? (
-                                        !verifyFail ? (
-                                            <CircularProgress color="inherit" size={20} />
-                                        ) : (
-                                            <DangerousIcon color="inherit" />
-                                        )
-                                    ) : (
-                                        <SendIcon />
-                                    )
-                                }
-                                color={verifyFail ? "error" : "primary"}
-                                onClick={handleSignUp}
-                            >
-                                SignUp
-                            </Button>
-                        )}
+                                ) : (
+                                    <SendIcon />
+                                )
+                            }
+                            onClick={handleSignUp}
+                            disabled={
+                                enteredName === "" ||
+                                enteredPassword === "" ||
+                                enteredCompany === "" ||
+                                checkPassword !== enteredPassword
+                            }
+                        >
+                            SignUp
+                        </Button>
                     </div>
                 )}
             </div>

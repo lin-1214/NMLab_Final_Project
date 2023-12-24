@@ -6,7 +6,8 @@ export type sendDataTypes =
     | "Register"
     | "Login"
     | "VP"
-    | "verifyVP";
+    | "verifyVP"
+    | "Signature";
 export type statusType = {
     type?: string;
     msg?: string;
@@ -20,4 +21,5 @@ export type verificationTypes = {
     ID: string;
     challenge: string;
     vp?: string;
+    signature?: string;
 };
