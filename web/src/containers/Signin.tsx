@@ -15,12 +15,26 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import SendIcon from "@mui/icons-material/Send";
 
 import { useState, SyntheticEvent, MouseEvent, React, useEffect } from "react";
+import useChat from "../hooks/useChat";
 import { useUserData } from "../hooks/useUserData";
 import { displayStatus } from "./ChatRoom";
 import Title from "../components/Title";
 import "./styles/SignIn.scss";
 
 const SignIn = () => {
+  interface RegPaylaod {
+    state: string;
+    userName: string;
+    password: string;
+    pincode: string;
+  }
+
+  interface LoginPayload {
+    state: string;
+    userName: string;
+    password: string;
+  }
+
   const { userName, setNowUser } = useUserData();
   const { password, setNowPassword } = useUserData();
   const { pinCode, setNowPinCode } = useUserData();
@@ -32,6 +46,7 @@ const SignIn = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showCheckedPassword, setShowCheckedPassword] = useState(false);
   const [showPinCode, setShowPinCode] = useState(false);
+  const { sendLoginData, checkLoginInfo } = useChat();
 
   const handleClickShowPassword = () =>
     setShowPassword((show: boolean) => !show);
@@ -64,28 +79,32 @@ const SignIn = () => {
       enteredName === "" ||
       enteredPassword === "" ||
       enteredPinCode === "" ||
-      checkPassword !== password
+      checkPassword === enteredPassword ||
+      enteredPinCode.length !== 6
     ) {
       displayStatus({
         type: "error",
         msg: "Information loss or password not match!",
       });
       return;
-    }
-    setNowUser(enteredName);
-    setNowPassword(enteredPassword);
-    setNowPinCode(enteredPinCode);
-    const payload = {
-      userName: enteredName,
-      userPassword: enteredPassword,
-      userPinCode: enteredPinCode,
-    };
+    } else {
+      const payload: RegPaylaod = {
+        state: "register",
+        userName: enteredName,
+        password: enteredPassword,
+        pincode: enteredPinCode,
+      };
 
-    // TODO: Send payload to RPi for encryption
-    console.log("Sign up success");
+      // TODO: Send payload to RPi for encryption
+      sendLoginData(payload);
+      setNowUser(enteredName);
+      setNowPassword(enteredPassword);
+      setNowPinCode(enteredPinCode);
+      console.log("Sign up success");
+    }
   };
 
-  const handleSignIn = (event: SyntheticEvent) => {
+  const handleSignIn = async (event: SyntheticEvent) => {
     if (enteredName === "" || enteredPassword === "") {
       console.log("Information loss or password not match!");
       displayStatus({
@@ -95,15 +114,15 @@ const SignIn = () => {
       return;
     }
 
+    const payload: LoginPayload = {
+      state: "login",
+      userName: enteredName,
+      password: enteredPassword,
+    };
+    // TODO: Check info in database
     setNowUser(enteredName);
     setNowPassword(enteredPassword);
-    setNowPinCode(enteredPinCode);
-    // TODO: Check info in database
-    const payload = {
-      userName: enteredName,
-      userPassword: enteredPassword,
-    };
-    console.log("Sign in success");
+    checkLoginInfo(payload);
   };
 
   useEffect(() => {
@@ -123,14 +142,14 @@ const SignIn = () => {
         {value === "login" ? (
           <>
             <div className="Logo"></div>
-            <div className="Intro">
-              Welcome to SSC! Join us to enjoy the convenience and security of
+            <div className="Intro2">
+              Welcome to SSC! Join us and enjoy the convenience and security of
               Stellar!
             </div>
           </>
         ) : (
           <>
-            <div className="Intro">
+            <div className="Intro2">
               Fill in the below information to join our Stellar community!
             </div>
           </>
@@ -178,13 +197,19 @@ const SignIn = () => {
                 label="Password"
               />
             </FormControl>
-            <Button
-              variant="contained"
-              endIcon={<SendIcon />}
-              onClick={handleSignIn}
-            >
-              SignIn
-            </Button>
+            {enteredName === "" || enteredPassword === "" ? (
+              <Button variant="contained" endIcon={<SendIcon />} disabled>
+                SignIn
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                endIcon={<SendIcon />}
+                onClick={handleSignIn}
+              >
+                SignIn
+              </Button>
+            )}
           </div>
         ) : (
           <div className="RegisterContent">
@@ -283,13 +308,22 @@ const SignIn = () => {
               </InputLabel>
               <OutlinedInput id="outlined-adornment-password" label="Company" />
             </FormControl>
-            <Button
-              variant="contained"
-              endIcon={<SendIcon />}
-              onClick={handleSignUp}
-            >
-              SignUp
-            </Button>
+            {enteredName === "" ||
+            enteredPassword === "" ||
+            enteredPinCode === "" ||
+            enteredPinCode.length !== 6 ? (
+              <Button variant="contained" endIcon={<SendIcon />} disabled>
+                SignUp
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                endIcon={<SendIcon />}
+                onClick={handleSignUp}
+              >
+                SignUp
+              </Button>
+            )}
           </div>
         )}
       </div>

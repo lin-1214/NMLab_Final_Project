@@ -21,7 +21,7 @@ const UserData = createContext<UserDataProps>({
   userPinCode: "",
   signedIn: false,
   setNowUser: () => {},
-  setNowPassWord: () => {},
+  setNowPassword: () => {},
   setNowPinCode: () => {},
   setLogOut: () => {},
 });
@@ -39,6 +39,12 @@ const UserDataProvider: FC<UserDataProviderProps> = (props) => {
     setUserName(name);
     setSignedIn(true);
   };
+  const setNowPassword = (password: string) => {
+    setPassword(password);
+  };
+  const setNowPinCode = (pinCode: string) => {
+    setPinCode(pinCode);
+  };
   const setLogOut = () => {
     setSignedIn(false);
   };
@@ -46,7 +52,7 @@ const UserDataProvider: FC<UserDataProviderProps> = (props) => {
     if (signedIn) {
       localStorage.setItem(LOCALSTORAGE_KEY, name);
     }
-  }, [name, password, signedIn]);
+  }, [name, password, pinCode, signedIn]);
 
   return (
     <UserData.Provider
@@ -54,8 +60,10 @@ const UserDataProvider: FC<UserDataProviderProps> = (props) => {
         userName: name,
         password: password,
         pinCode: pinCode,
-        signedIn: signedIn,
+        signedIn,
         setNowUser,
+        setNowPassword,
+        setNowPinCode,
         setLogOut,
       }}
       {...props}
