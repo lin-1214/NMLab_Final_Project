@@ -16,14 +16,8 @@ const durationMap: { [Name: string]: number } = Object.freeze({
 
 function App() {
     const { userName, signedIn } = useUserData();
-    const { status } = useChat();
-    const [alert, setAlert] = useState(false);
+    const { status, msgSent, setMsgSent } = useChat();
     console.log("Sign in: ", signedIn);
-
-    if (status.type) {
-        setAlert(true);
-    }
-    console.log("app status: ", status);
     // return <ChatRoom user={userName}></ChatRoom>;
     return (
         <>
@@ -31,8 +25,8 @@ function App() {
             <PopUp
                 duration={durationMap[status.type || "loading"]}
                 message={status.msg || ""}
-                open={alert}
-                setOpen={setAlert}
+                open={false}
+                setOpen={setMsgSent}
             />
         </>
     );

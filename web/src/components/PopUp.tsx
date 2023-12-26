@@ -10,14 +10,7 @@ interface StatusProps {
     setOpen: (open: boolean) => void;
 }
 const SimpleSnackbar: FC<StatusProps> = ({ message, duration, open, setOpen }) => {
-    const handleClick = () => {
-        setOpen(true);
-    };
-
     const handleClose = (event: SyntheticEvent | Event, reason?: string) => {
-        if (reason === "clickaway") {
-            return;
-        }
         setOpen(false);
     };
 
@@ -33,15 +26,13 @@ const SimpleSnackbar: FC<StatusProps> = ({ message, duration, open, setOpen }) =
     );
 
     return (
-        <div>
-            <Snackbar
-                open={open}
-                autoHideDuration={duration || 3000}
-                onClose={handleClose}
-                message={message}
-                action={action}
-            />
-        </div>
+        <Snackbar
+            open={open}
+            autoHideDuration={duration || 3000}
+            onClose={handleClose}
+            message={message}
+            action={action}
+        />
     );
 };
 

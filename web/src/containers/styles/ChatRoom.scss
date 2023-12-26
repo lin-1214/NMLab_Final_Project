@@ -52,3 +52,37 @@
 .footRef {
   height: 40px;
 }
+
+
+.img-hidden {
+  opacity: 0;
+  position: absolute;
+  top: 50dvh;
+  left: 50dvw;
+  width: 40%;
+  transform: translate(-50%, -50%);
+  height: auto;
+  z-index: 100;
+  transition: all 0.1s ease-in-out;
+}
+
+.pop {
+opacity: 0.3;
+  position: absolute;
+  top: 50dvh;
+  left: 50dvw;
+  width: 30%;
+  transform: translate(-50%, -50%);
+  height: auto;
+  animation: popup 3s ease-in;
+}
+
+@keyframes popup {
+  0% {
+    width: 50%;
+  }
+  100% {
+    width: 350%;
+    opacity: 0.0;
+    }
+}

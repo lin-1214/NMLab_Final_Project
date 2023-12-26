@@ -93,6 +93,7 @@ const SignIn = () => {
                 company: enteredCompany,
             };
             // TODO: Send payload to RPi for encryption
+            console.log("payload: ", payload);
             sendRegisterData(payload);
             setNowUser(enteredName);
             setNowPassword(enteredPassword);
@@ -103,6 +104,7 @@ const SignIn = () => {
                 setSignedIn(true);
                 setCheckPassword("");
                 setEnteredPassword("");
+                setWaitingForVerify(false);
             });
         }
     };
@@ -132,6 +134,7 @@ const SignIn = () => {
             setSignedIn(true);
             setCheckPassword("");
             setEnteredPassword("");
+            setWaitingForVerify(false);
         });
     };
 
@@ -146,17 +149,12 @@ const SignIn = () => {
                 setWaitingForVerify(false);
             }, 3000);
         };
+        setTimeout(() => {
+            console.log("Waiting time out");
+            failCallBack();
+        }, 5 * 1000);
         setSignInFailCallBack(() => failCallBack);
     };
-    // useEffect(() => {
-    //     let payload = {
-    //         enteredName: enteredName,
-    //         enteredPassword: enteredPassword,
-    //         pinCode: enteredPinCode,
-    //         checkPassword: checkPassword,
-    //     };
-    //     console.log("payload: ", payload);
-    // }, [enteredName, enteredPassword, enteredPinCode, checkPassword]);
 
     return (
         <div className="Wrapper">

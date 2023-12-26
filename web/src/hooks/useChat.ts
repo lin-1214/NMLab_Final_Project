@@ -5,7 +5,7 @@ import { messageTypes, sendDataTypes, verificationTypes } from "../types";
 import { useUserData } from "./useUserData";
 const backendURL = "localhost:4000";
 const IOTAURL = "localhost:4096";
-const RPiURL = "192.168.2.3:8000";
+const RPiURL = "localhost:8000";
 // const RPiURL = "raspberrypi.local:8000";
 var mainServerClient = new WebSocket(`ws://${backendURL}`);
 var localRPiClient = new WebSocket(`ws://${RPiURL}`);
@@ -33,11 +33,8 @@ const digestMessage = async (message: string) => {
     const encoder = new TextEncoder();
     const data = encoder.encode(message);
     const hash = await crypto.subtle.digest("SHA-256", data);
-    console.log("hash:", hash);
-    const decoder = new TextDecoder("utf-8");
     const hash8 = new Uint8Array(hash);
     const text = btoa(String.fromCharCode(...hash8));
-    console.log("text1:", text);
     return text;
 };
 
@@ -54,7 +51,6 @@ const useChat = () => {
     const [signInFailCallBak, setSignInFailCallBack] = useState<() => void>(() => () => {});
     const [msgSent, setMsgSent] = useState(false);
     const { setLogOut, setNowUser, setNowPassword, company, userName } = useUserData();
-
     const safeSendData = async (
         data: string,
         clients: WebSocket[],
@@ -94,13 +90,21 @@ const useChat = () => {
     // TODO: change sendData to sendCryptoData if send to rpi
     const sendRPiData = async (data: string, attempt = 0) => {
         // const dataObj = JSON.parse(data);
+        // dataObj.publicKey = await digestMessage(dataObj.userName);
+        // dataObj.signature = await digestMessage(dataObj.company + dataObj.userName);
         // if (dataObj.state === "login") {
         //     console.log("send login data");
         //     sendData(["Login", dataObj]);
         // } else if (dataObj.state === "register") {
         //     console.log("send register data");
         //     sendData(["Register", dataObj]);
+        // } else {
+        //     console.log("send data");
+        //     dataObj.challenge = dataObj.message;
+        //     sendData(["Signature", dataObj]);
         // }
+        // return;
+        console.log("send data: ", data);
         safeSendData(
             JSON.stringify(data),
             myClients,
@@ -182,6 +186,7 @@ const useChat = () => {
             }
             case "Login": {
                 const data = payload;
+                console.log("login: ", data);
                 if (data.state === "success") {
                     signInCallBak();
                     setSignInCallBack(() => () => {});
@@ -198,12 +203,16 @@ const useChat = () => {
             }
             case "Register": {
                 const data = payload;
+                console.log("register: ", data);
+
                 if (data.state === "success") {
                     signInCallBak();
                     setSignInCallBack(() => () => {});
                     console.log("login success");
+                } else if (data.state === "exist") {
+                    setStatus({ type: "error", msg: "Account Exist!" });
                 } else {
-                    setStatus({ type: "error", msg: "Register Failed" });
+                    setStatus({ type: "error", msg: "Register Failed!" });
                     signInFailCallBak();
                     setSignInFailCallBack(() => () => {});
                     setNowUser("");
@@ -213,7 +222,7 @@ const useChat = () => {
                 break;
             }
             case "VP": {
-                const { ID, challenge } = payload;
+                const { ID, challenge, userName, company } = payload;
                 // if (localRPiClient.readyState !== localRPiClient.OPEN) {
                 //     await askVP({ company, name: userName, challenge, askID: ID });
                 // } else {
@@ -222,6 +231,7 @@ const useChat = () => {
                 //         sendRPiData(JSON.stringify({ state: "sign", message: challenge })),
                 //     ]);
                 // }
+                console.log("askVP: ", payload);
                 await Promise.all([
                     askVP({ company, name: userName, challenge, askID: ID }),
                     sendRPiData(
@@ -249,16 +259,21 @@ const useChat = () => {
         console.log("from RPi receive payload: ", payload);
         // const client = myClients[clientKey.RPi];
         // sendData([task, payload]);
-        switch (task) {
+        const { state } = payload;
+        switch (state) {
             // send to backend
-            case "Register": {
+            case "register": {
                 sendData(["Register", payload]);
                 break;
             }
-            case "Login": {
+            case "login": {
                 sendData(["Login", payload]);
                 break;
             }
+            default:
+                break;
+        }
+        switch (task) {
             case "Signature": {
                 sendData(["Signature", { ...payload, challenge: payload.message }]);
                 break;
@@ -346,6 +361,10 @@ const useChat = () => {
                 console.error(`unCaught askVP error: `, e);
             });
     };
+    useEffect(() => {
+        setMsgSent(() => !msgSent);
+    }, [status]);
+
     myClients[clientKey.backend].onmessage = (byteString) => mainClientOnMsg(byteString);
     myClients[clientKey.RPi].onmessage = (byteString) => RPiClientOnMsg(byteString);
     for (let i = 0; i < myClients.length; i++) {

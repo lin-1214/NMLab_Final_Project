@@ -98,74 +98,29 @@ const verifyVP = async ({ name, company, vp, challenge, ws, task }) => {
             throw e;
         });
 };
-function convertToRSAPublicKey(publicKey) {
-    const oldHeader = "-----BEGIN PUBLIC KEY-----";
-    const newHeader = "-----BEGIN RSA PUBLIC KEY-----";
-    const oldFooter = "-----END PUBLIC KEY-----\n";
-    const newFooter = "-----END RSA PUBLIC KEY-----\n";
-
-    // Check if the publicKey starts with the old header
-    if (publicKey.startsWith(oldHeader)) {
-        // Replace the old header with the new header
-        const modifiedKey = publicKey.replace(oldHeader, newHeader);
-
-        // Check if the publicKey ends with the old footer
-        if (publicKey.endsWith(oldFooter)) {
-            // Replace the old footer with the new footer
-            return modifiedKey.replace(oldFooter, newFooter);
-        } else {
-            // If the key doesn't end with the expected footer, return it unchanged
-            return modifiedKey;
-        }
-    } else {
-        // If the key doesn't start with the expected header, return it unchanged
-        return publicKey;
-    }
-}
-
 const verifySignature = async ({ signature, publicKey, challenge }) => {
+    console.log("*************Verify Signature*************");
     const verifier = crypto.createVerify("SHA256");
+    const challengeHash = crypto.createHash("sha256").update(challenge).digest();
     verifier.update(challenge);
     verifier.end();
-    console.log("verifier update");
-    console.log("signature: ", signature);
-    console.log("publicKey: ", publicKey);
-    console.log("challenge: ", challenge);
-    // const normalizedPublicKey = publicKey.length % 2 === 0 ? publicKey : "0" + publicKey;
-
+    console.log("signature:\n", signature, "\n\n");
+    console.log("publicKey:\n", publicKey, "\n\n");
+    console.log("challenge:\n", challenge, "\n\n");
+    console.log("challengeHash:\n", challengeHash.toString("hex"), "\n\n");
     const publicKeyBuf = Buffer.from(publicKey, "base64").toString("ascii");
     const signatureBuf = Buffer.from(signature, "base64");
     console.log("change to buffer");
-    console.log("publicKey:", publicKeyBuf);
-    console.log("signatureBuf: ", signatureBuf);
-    console.log("signature: ", signature, typeof signature);
-    console.log("signature2: ", signature.replace(/=+$/, ""));
+    console.log("publicKey:\n", publicKeyBuf, "\n\n");
+    console.log("signatureBuf:\n", signatureBuf, "\n\n");
     const verified = verifier.verify(publicKeyBuf, signatureBuf);
-    console.log("verified: ", verified);
-    // if (!verified) throw "Signature error";
+    if (!verified) {
+        console.log("*************Verification Fail*************");
+        throw "Signature error";
+    }
+    console.log("*************Signature verified*************");
     return;
 };
-// const verifySignature = async ({ signature, publicKey, challenge }) => {
-//     const verifier = crypto.createVerify("SHA256");
-//     verifier.update(challenge);
-//     verifier.end();
-//     console.log("verifier update");
-//     console.log("signature: ", signature);
-//     console.log("publicKey: ", publicKey);
-//     console.log("challenge: ", challenge);
-//     // const normalizedPublicKey = publicKey.length % 2 === 0 ? publicKey : "0" + publicKey;
-
-//     const publicKeyBuf = Buffer.from(publicKey, "hex").toString("ascii");
-//     const signatureBuf = Buffer.from(signature, "base64");
-//     console.log("change to buffer");
-//     console.log("publicKey:", publicKeyBuf);
-//     console.log("signatureBuf: ", signatureBuf.length);
-//     console.log("signature: ", signature, typeof signature);
-//     console.log("signature2: ", signature.replace(/=+$/, ""));
-//     const verified = verifier.verify(publicKeyBuf.slice(0, -1), signatureBuf);
-//     if (!verified) throw "Signature error";
-//     return;
-// };
 const handleRegister = async (payload, ws) => {
     const {
         vp,
@@ -244,29 +199,32 @@ export default {
             // deal with save register data to backend
             if (task === "Register") {
                 const { userName, password, company, pincode, signature, publicKey } = payload;
+                let user = await IdentityModel.findOne({ userName: userName, company: company });
+                if (user)
+                    sendData(["Register", { state: "exist", msg: "You are Registered!" }], ws);
                 const verificationID = Math.random().toString(36).substring(2, 15);
                 const challenge = Math.random().toString(36).substring(2, 15);
                 needVerification[verificationID] = {
                     identity: { userName, password, company, pincode, signature, publicKey },
                     ws,
                     challenge,
-                    task: "Register",
+                    task: user ? "reRegister" : "Register",
                     vpChecked: false,
                     signatureChecked: false,
                 };
-                sendData(["VP", { ID: verificationID, challenge }], ws);
+                sendData(["VP", { ID: verificationID, challenge, userName, company }], ws);
                 return;
             } else if (task === "Login") {
                 console.log("login");
-                const { userName, password } = payload;
-                let user = await IdentityModel.findOne({ userName: userName });
+                const { userName, password, company } = payload;
+                let user = await IdentityModel.findOne({ userName: userName, company: company });
                 console.log(user);
                 if (!user) {
                     sendData([task, "User doesn't exist."], ws);
                     sendStatus({ type: "error", msg: "User doesn't exist." }, ws);
                     return;
                 }
-                console.log(user.password, password);
+                console.log("password", user.password, password);
                 if (user.password !== password) {
                     sendData([task, "Password error."], ws);
                     sendStatus({ type: "error", msg: "Password error." }, ws);
@@ -328,14 +286,12 @@ export default {
                                 userName,
                                 password,
                                 pincode,
-                                signature,
                                 publicKey,
                                 company,
                             });
                             await _identity.save();
                         }
-                    }
-                    if (task === "Login") {
+                    } else if (task === "Login") {
                         await handleLogin(
                             {
                                 userName,
@@ -353,6 +309,32 @@ export default {
                         needVerification[ID].vpChecked = true;
                         if (needVerification[ID].signatureChecked) {
                             sendData(["Login", { state: "success" }], ws);
+                        }
+                    } else if (task === "reRegister") {
+                        await handleLogin(
+                            {
+                                userName,
+                                company,
+                                password,
+                                pincode,
+                                publicKey,
+                                vp,
+                                challenge,
+                                vpChecked,
+                                signatureChecked,
+                            },
+                            ws
+                        );
+                        needVerification[ID].vpChecked = true;
+                        if (needVerification[ID].signatureChecked) {
+                            sendData(["Login", { state: "success" }], ws);
+                            sendStatus("Password changed.", ws);
+                            let user = await IdentityModel.findOne({
+                                userName: userName,
+                                company: company,
+                            });
+                            user.password = password;
+                            await user.save();
                         }
                     }
                     return;
@@ -378,6 +360,7 @@ export default {
                     console.log("challenge: ", challenge);
                     console.log("_challenge: ", _challenge);
                     console.log("company: ", identity);
+
                     if (challenge !== _challenge) throw "challenge error";
                     if (task === "Register") {
                         await handleRegister(
@@ -401,14 +384,35 @@ export default {
                                 userName,
                                 password,
                                 pincode,
-                                signature,
                                 publicKey,
                                 company,
                             });
                             await _identity.save();
                         }
-                    }
-                    if (task === "Login") {
+                    } else if (task === "Login") {
+                        try {
+                            await handleLogin(
+                                {
+                                    userName,
+                                    company,
+                                    password,
+                                    pincode,
+                                    signature,
+                                    publicKey,
+                                    challenge,
+                                    vpChecked,
+                                    signatureChecked,
+                                },
+                                ws
+                            );
+                        } catch (e) {
+                            // console.log(e);
+                        }
+                        needVerification[ID].signatureChecked = true;
+                        if (needVerification[ID].vpChecked) {
+                            sendData(["Login", { state: "success" }], ws);
+                        }
+                    } else if (task === "reRegister") {
                         await handleLogin(
                             {
                                 userName,
@@ -426,6 +430,13 @@ export default {
                         needVerification[ID].signatureChecked = true;
                         if (needVerification[ID].vpChecked) {
                             sendData(["Login", { state: "success" }], ws);
+                            sendStatus("Password changed.", ws);
+                            let user = await IdentityModel.findOne({
+                                userName: userName,
+                                company: company,
+                            });
+                            user.password = password;
+                            await user.save();
                         }
                     }
                     return;
@@ -527,7 +538,7 @@ export default {
             try {
                 chatBoxes[ws.box].delete(ws);
             } catch (e) {
-                console.log(e);
+                // console.log(e);
             }
         });
     },

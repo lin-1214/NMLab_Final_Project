@@ -2,19 +2,34 @@ import asyncio
 import json
 import websockets
 from Crypto.Util import number
+from Crypto.Signature import pkcs1_15
+from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA256
 # Add modules here in case u need
 import requests
 from flask import request
-from tpm2_pytss.FAPI import FAPI
 import hashlib
 import base64
 
-fapi = FAPI()
+# read key from file
+import os 
+
+def get_key(storePath = "data"):
+    f = open(f"{storePath}/private.pem", "rb")
+    private_key = f.read()
+    f.close()
+    f = open(f"{storePath}/public.pem", "rb")
+    public_key = f.read()
+    f.close()
+    private_key = RSA.import_key(private_key)
+    public_key = RSA.import_key(public_key)
+    return private_key, public_key
+
 # fapi.create_key("/HS/SRK/sign_key", "exportable")
 
 # Build websocket server
 PORT = 8000
-HOST = "0.0.0.0"
+HOST = "127.0.0.1"
 name_private_pair = {}
 
 def encoder(target):
@@ -32,14 +47,14 @@ async def hash(target):
 
 async def signature(pt, key_path):
     # TODO: Sign message
-    # fapi.create_key("/HS/SRK/sign_key")
-    # print(target1+target2)
-    digest = await hash(pt)
-    print(digest)
-    signature, public_key, _ = fapi.sign(key_path, digest, "rsa_ssa")
-    return signature, public_key              # return signature & verifier
+    private_key, public_key = get_key()
+    _hash = SHA256.new(pt.encode())
+    print("_hash", _hash.digest().hex())
+    sign = pkcs1_15.new(private_key)
+    signature = sign.sign(_hash)
+    return signature, public_key.export_key()             # return signature & verifier
 
-# create handler for each connection
+
 async def handler(websocket, path):
     req = await websocket.recv()
     print(f"Data recieved: {req}")
@@ -51,27 +66,14 @@ async def handler(websocket, path):
     data["state"] = str(data["state"]).lower()
     data["name"] = data["userName"]
     if (data["state"] in ["register", "login"]):
-        # data: {"state", "username", "company"}
         print("-----------------------")
         print("Register")
         full_name = data["userName"] + data["company"]
-        key_path = f"/HS/SRK/{full_name}_key"
-        try:
-            fapi.create_key(key_path, "exportable")
-            print("create key success")
-        except:
-            print("key exist!")
-
-        exportData = fapi.export_key(key_path)
-        exportData = json.loads(exportData)
-        print(type(exportData))
-        public_key = str(exportData["pem_ext_public"][27:-26].replace("\n", ""))
-        print(f"public key: {public_key}")
+        print(f"full name: {full_name}")
+        private_key, public_key = get_key()
         name_private_pair[full_name] = public_key
-
-        # payload = {"publicKey": public_key}
         task = data["state"].capitalize()
-        data["publicKey"] = public_key
+        data["publicKey"] = public_key.export_key().decode('ascii')
         print("Done registration")
         print("-----------------------")
     elif (data["state"] == "sign"):
@@ -82,9 +84,10 @@ async def handler(websocket, path):
         full_name = data["userName"] + data["company"]
         key_path = f"/HS/SRK/{full_name}_key"
         sig, pub = await signature(data["message"], key_path)
-        
-        print(f"signature: {len(sig)}")
-        print(f"public key: {pub}")
+        print("#######################")
+        print(f"signature: {encoder(sig)}")
+        print(f"publicKey: {pub}")
+        print("#######################")
         
         task = "Signature"
         data["signature"] = encoder(sig)
@@ -92,27 +95,29 @@ async def handler(websocket, path):
         print("Done signature")
         print("-----------------------")
 
-    #elif (data["state"] == "message"):
-        # data: {"state", "message", "publicKey"}
-
-
     else:
         print("state error! Please check the state of data")
 
 
     # Send back payload
     if (data["state"] == "sign"):
-        digest = await hash(data["message"])
+        _hash = SHA256.new(data["message"].encode())
         try:
-            fapi.verify_signature(key_path, digest, sig)
+            # verify the signature
+            _private_key, _public_key = get_key()
+            sign = pkcs1_15.new(_public_key)
+            sign.verify(_hash, sig)
             print("SUCCESS!")
-        except:
+        except Exception as e:
             print("FAILED!")
+            print(e)
+            print("-----------------------")
         print(f"Payload send to Website: {data}")
     dataString = str([task, data])
     await websocket.send(dataString)
 
 
 start_server = websockets.serve(handler, HOST, PORT)
+print(f"Server is running@ { HOST }:{ PORT }")
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
