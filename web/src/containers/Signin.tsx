@@ -16,7 +16,7 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import SendIcon from "@mui/icons-material/Send";
 import DangerousIcon from "@mui/icons-material/Dangerous";
 import React, { useState, SyntheticEvent, MouseEvent, useEffect, FC } from "react";
-import useChat from "../hooks/useChat";
+import { useChat } from "../hooks/useChat";
 import { useUserData } from "../hooks/useUserData";
 import { displayStatus } from "./ChatRoom";
 import Title from "../components/Title";
@@ -124,6 +124,7 @@ const SignIn = () => {
             password: enteredPassword,
             company: enteredCompany,
         };
+        console.log("login payload: ", payload);
         // TODO: Check info in database
         sendLoginData(payload);
         setNowUser(enteredName);
@@ -152,7 +153,7 @@ const SignIn = () => {
         setTimeout(() => {
             console.log("Waiting time out");
             failCallBack();
-        }, 5 * 1000);
+        }, 10 * 1000);
         setSignInFailCallBack(() => failCallBack);
     };
 

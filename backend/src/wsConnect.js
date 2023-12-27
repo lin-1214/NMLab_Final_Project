@@ -213,6 +213,7 @@ export default {
                     signatureChecked: false,
                 };
                 sendData(["VP", { ID: verificationID, challenge, userName, company }], ws);
+                sendStatus({ type: "info", msg: "Verifing" }, ws);
                 return;
             } else if (task === "Login") {
                 console.log("login");
@@ -245,7 +246,8 @@ export default {
                     vpChecked: false,
                     signatureChecked: false,
                 };
-                sendData(["VP", { ID: verificationID, challenge }], ws);
+                sendData(["VP", { ID: verificationID, challenge, userName, company }], ws);
+                sendStatus({ type: "info", msg: "Verifing" }, ws);
                 return;
             } else if (task === "VP") {
                 try {
@@ -282,6 +284,7 @@ export default {
                         needVerification[ID].vpChecked = true;
                         if (needVerification[ID].signatureChecked) {
                             sendData(["Register", { state: "success" }], ws);
+                            sendStatus({ type: "success", msg: "Register success." }, ws);
                             const _identity = new IdentityModel({
                                 userName,
                                 password,
@@ -309,6 +312,7 @@ export default {
                         needVerification[ID].vpChecked = true;
                         if (needVerification[ID].signatureChecked) {
                             sendData(["Login", { state: "success" }], ws);
+                            sendStatus({ type: "success", msg: "Login success." }, ws);
                         }
                     } else if (task === "reRegister") {
                         await handleLogin(
@@ -328,7 +332,7 @@ export default {
                         needVerification[ID].vpChecked = true;
                         if (needVerification[ID].signatureChecked) {
                             sendData(["Login", { state: "success" }], ws);
-                            sendStatus("Password changed.", ws);
+                            sendStatus({ type: "success", msg: "Password changed." }, ws);
                             let user = await IdentityModel.findOne({
                                 userName: userName,
                                 company: company,
@@ -339,7 +343,7 @@ export default {
                     }
                     return;
                 } catch (e) {
-                    sendStatus({ type: "error", msg: "VP error" }, ws);
+                    sendStatus({ type: "fatal error", msg: "Verification Fail" }, ws);
                     console.error("VP error:", e);
                     return;
                 }
@@ -380,6 +384,7 @@ export default {
                         needVerification[ID].signatureChecked = true;
                         if (needVerification[ID].vpChecked) {
                             sendData(["Register", { state: "success" }], ws);
+                            sendStatus({ type: "success", msg: "Register success." }, ws);
                             const _identity = new IdentityModel({
                                 userName,
                                 password,
@@ -410,6 +415,7 @@ export default {
                         }
                         needVerification[ID].signatureChecked = true;
                         if (needVerification[ID].vpChecked) {
+                            sendStatus({ type: "success", msg: "Login success." }, ws);
                             sendData(["Login", { state: "success" }], ws);
                         }
                     } else if (task === "reRegister") {
@@ -430,7 +436,7 @@ export default {
                         needVerification[ID].signatureChecked = true;
                         if (needVerification[ID].vpChecked) {
                             sendData(["Login", { state: "success" }], ws);
-                            sendStatus("Password changed.", ws);
+                            sendStatus({ type: "success", msg: "Password changed." }, ws);
                             let user = await IdentityModel.findOne({
                                 userName: userName,
                                 company: company,
@@ -441,7 +447,7 @@ export default {
                     }
                     return;
                 } catch (e) {
-                    sendStatus({ type: "error", msg: "Signature error" }, ws);
+                    sendStatus({ type: "fatal error", msg: "Verification Fail" }, ws);
                     console.error("Signature error:", e);
                     return;
                 }

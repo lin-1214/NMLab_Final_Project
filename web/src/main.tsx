@@ -2,6 +2,7 @@ import React, { Profiler } from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import { UserDataProvider } from "./hooks/useUserData";
+import { UseChatProvider } from "./hooks/useChat.tsx";
 import "./index.css";
 function onRenderCallback(
     id: string,
@@ -17,9 +18,11 @@ function onRenderCallback(
 ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
         <UserDataProvider>
-            {/* <Profiler id="App" onRender={onRenderCallback}> */}
-            <App />
-            {/* </Profiler> */}
+            <UseChatProvider>
+                {/* <Profiler id="App" onRender={onRenderCallback}> */}
+                <App />
+                {/* </Profiler> */}
+            </UseChatProvider>
         </UserDataProvider>
     </React.StrictMode>
 );

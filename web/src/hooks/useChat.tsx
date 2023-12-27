@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { FC, createContext, useEffect, useState, useContext } from "react";
 import { messageTypes, sendDataTypes, verificationTypes } from "../types";
 
 // console.log("i enter useChat");
 import { useUserData } from "./useUserData";
+// import crypto from "crypto";
+
 const backendURL = "localhost:4000";
 const IOTAURL = "localhost:4096";
 const RPiURL = "localhost:8000";
@@ -16,12 +18,10 @@ enum clientKey {
     backend,
     RPi,
 }
-console.log("client url: ", mainServerClient.url);
-console.log("client protocol: ", mainServerClient.protocol);
-
-console.log("Backend client: ", mainServerClient);
-console.log("RPi client: ", localRPiClient);
-// console.log("IOTA client: ", IOTAServerClient);
+// console.log("client url: ", mainServerClient.url);
+// console.log("client protocol: ", mainServerClient.protocol);
+// console.log("Backend client: ", mainServerClient);
+// console.log("RPi client: ", localRPiClient);
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -38,7 +38,64 @@ const digestMessage = async (message: string) => {
     return text;
 };
 
-const useChat = () => {
+interface UseChatTypes {
+    status: { type?: string; msg?: string };
+    messages: messageTypes[];
+    msgSent: boolean;
+    setMsgSent: React.Dispatch<React.SetStateAction<boolean>>;
+    askInit: () => void;
+    startChat: (name: string, to: string) => void;
+    sendMessageInBox: (payload: { name: string; to: string; body: string }) => void;
+    clearChatBox: (participants: { name: string; to: string }) => void;
+    sendLoginData: (payload: {
+        state: string;
+        userName: string;
+        password: string;
+        company: string;
+    }) => void;
+    sendRegisterData: (payload: {
+        state: string;
+        company: string;
+        userName: string;
+        password: string;
+        pincode?: string;
+    }) => void;
+    askVP: (payload: { company: string; name: string; challenge: string; askID: string }) => void;
+    setSignInCallBack: React.Dispatch<React.SetStateAction<() => void>>;
+    setSignInFailCallBack: React.Dispatch<React.SetStateAction<() => void>>;
+}
+
+interface publicKeysTypes {
+    [name: string]: string;
+}
+interface ChatBoxDataTypes {
+    id: string;
+    name: string;
+    to: string;
+    status: "close" | "RSAEstablishing" | "RSAEstablished" | "KeyExchanged";
+    key?: string;
+    publicKeys?: publicKeysTypes;
+}
+const ChatData = createContext<UseChatTypes>({
+    status: {},
+    messages: [],
+    msgSent: false,
+    setMsgSent: () => {},
+    askInit: () => {},
+    startChat: () => {},
+    sendMessageInBox: () => {},
+    clearChatBox: () => {},
+    sendLoginData: () => {},
+    sendRegisterData: () => {},
+    askVP: () => {},
+    setSignInCallBack: () => {},
+    setSignInFailCallBack: () => {},
+});
+interface UseChatProviderProps {
+    children: React.ReactNode;
+}
+
+const UseChatProvider: FC<UseChatProviderProps> = (props) => {
     // define messages, status
     useEffect(() => {
         console.log("creating useChat");
@@ -49,7 +106,8 @@ const useChat = () => {
     const [status, setStatus] = useState<{ type?: string; msg?: string }>({});
     const [signInCallBak, setSignInCallBack] = useState<() => void>(() => () => {});
     const [signInFailCallBak, setSignInFailCallBack] = useState<() => void>(() => () => {});
-    const [msgSent, setMsgSent] = useState(false);
+    const [chatBoxSessions, setChatBoxSessions] = useState<{ [key: string]: string }>({}); // {box: key}
+    const [msgSent, setMsgSent] = useState(true);
     const { setLogOut, setNowUser, setNowPassword, company, userName } = useUserData();
     const safeSendData = async (
         data: string,
@@ -70,7 +128,7 @@ const useChat = () => {
             return;
         }
         if (client.readyState === client.CLOSED || client.readyState === client.CLOSING) {
-            setStatus({ type: "info", msg: "Connecting..." });
+            // setStatus({ type: "info", msg: "Connecting..." });
             await delay(100);
             client = new WebSocket(client.url);
             clients[clientKey] = client;
@@ -79,14 +137,13 @@ const useChat = () => {
                 safeSendData(data, clients, clientKey, onmessage, errorMsg, attempt + 1);
                 return;
             } else {
-                setStatus({ type: "success", msg: "Connected!" });
+                // setStatus({ type: "success", msg: "Connected!" });
                 askInit();
                 client.onmessage = (byteString) => onmessage(byteString);
             }
         }
         client.send(data);
     };
-
     // TODO: change sendData to sendCryptoData if send to rpi
     const sendRPiData = async (data: string, attempt = 0) => {
         // const dataObj = JSON.parse(data);
@@ -114,16 +171,6 @@ const useChat = () => {
             attempt
         );
     };
-    // const sendIOTAData = async (data: [sendDataTypes, messageTypes], attempt = 0) => {
-    //     safeSendData(
-    //         JSON.stringify(data),
-    //         myClients,
-    //         clientKey.IOTA,
-    //         IOTAClientOnMsg,
-    //         "IOTA Connnection Failed",
-    //         attempt
-    //     );
-    // };
     const sendData = async (
         data: [sendDataTypes, messageTypes | "init" | verificationTypes],
         attempt = 0
@@ -286,27 +333,6 @@ const useChat = () => {
                 break;
         }
     };
-    // const IOTAClientOnMsg = (byteString: MessageEvent<string>) => {
-    //     const { data } = byteString;
-    //     const [task, payload] = JSON.parse(data);
-    //     console.log("RPi receive: ", task);
-    //     const client = myClients[clientKey.IOTA];
-    //     switch (task) {
-    //         case "Login": {
-    //             const data = JSON.parse(payload.replace(/'/g, '"'));
-    //             if (data.state === "success") {
-    //                 console.log("login success");
-    //             } else {
-    //                 setNowUser("");
-    //                 setNowPassword("");
-    //                 setLogOut();
-    //             }
-    //             break;
-    //         }
-    //         default:
-    //             break;
-    //     }
-    // };
     // TODO: send login content plaintext to RPi
     const sendRegisterData = async (payload: {
         state: string;
@@ -361,6 +387,48 @@ const useChat = () => {
                 console.error(`unCaught askVP error: `, e);
             });
     };
+
+    const ChatBoxControll = async ({ status, key, publicKeys, id, name, to }: ChatBoxDataTypes) => {
+        switch (status) {
+            case "close":
+                return {
+                    task: ["RSAEstablishing", { id, name, to }],
+                    nextState: "RSAEstablishing",
+                    needEncrypt: false,
+                    needTransmit: true,
+                    needDecrypt: false,
+                };
+            case "RSAEstablishing":
+                return {
+                    task: ["RSAEstablished", { id, name, to, publicKeys }],
+                    nextState: "RSAEstablished",
+                    needEncrypt: false,
+                    needTransmit: true,
+                    needDecrypt: false,
+                };
+            case "RSAEstablished":
+                const sessionKey = await crypto.subtle.generateKey(
+                    {
+                        name: "AES-GCM",
+                        length: 256,
+                    },
+                    true,
+                    ["encrypt", "decrypt"]
+                );
+                const exportedSessionKey = await crypto.subtle.exportKey("jwk", sessionKey);
+                return {
+                    task: [
+                        "KeyExchanged",
+                        { id, name, to, publicKeys, key: JSON.stringify(exportedSessionKey) },
+                    ],
+                    nextState: "KeyExchanged",
+                    needEncrypt: true,
+                    needTransmit: true,
+                    needDecrypt: false,
+                };
+            case "KeyExchanged":
+        }
+    };
     useEffect(() => {
         setMsgSent(() => !msgSent);
     }, [status]);
@@ -369,26 +437,33 @@ const useChat = () => {
     myClients[clientKey.RPi].onmessage = (byteString) => RPiClientOnMsg(byteString);
     for (let i = 0; i < myClients.length; i++) {
         myClients[i].onclose = (e) => {
+            if (i === clientKey.RPi) return;
             console.log(`Socket ${i} is closed.`, e.reason);
-            let msg = "Server Lost. Reconnect will be attempted in 5 second!";
+            let msg = "Server Lost. Please Check your Internet!";
             setStatus({ type: "fatal error", msg: msg });
         };
     }
-    return {
-        status,
-        messages,
-        msgSent,
-        setMsgSent,
-        askInit,
-        startChat,
-        sendMessageInBox,
-        clearChatBox,
-        sendLoginData,
-        sendRegisterData,
-        askVP,
-        setSignInCallBack,
-        setSignInFailCallBack,
-    };
+    return (
+        <ChatData.Provider
+            value={{
+                status,
+                messages,
+                msgSent,
+                setMsgSent,
+                askInit,
+                startChat,
+                sendMessageInBox,
+                clearChatBox,
+                sendLoginData,
+                sendRegisterData,
+                askVP,
+                setSignInCallBack,
+                setSignInFailCallBack,
+            }}
+            {...props}
+        ></ChatData.Provider>
+    );
 };
 
-export default useChat;
+const useChat = () => useContext(ChatData);
+export { useChat, UseChatProvider };

@@ -2,7 +2,7 @@ import { FC, useState, useEffect, useRef } from "react";
 import Message from "../components/Message";
 import ChatModal from "../components/ChatModal";
 import { useUserData } from "../hooks/useUserData";
-import useChat from "../hooks/useChat";
+import { useChat } from "../hooks/useChat";
 import "./styles/ChatRoom.scss";
 import { Button, TextField } from "@mui/material";
 import {
