@@ -16,6 +16,8 @@ import * as ChatRoomStyled from "./styles/ChatRoom.styled";
 import SendIcon from "@mui/icons-material/Send";
 import ChatRoomTabs from "../components/ChatRoomTabs";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
 const displayStatus = (status: statusType) => {
     if (status.msg) {
         const { type, msg } = status;
@@ -252,8 +254,12 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
                     </Button>
                 </div>
                 <ChatRoomTabs
-                    onChange={(key: string) => {
+                    onChange={async (key: string) => {
                         // console.log("onChange", key);
+                        // if (key !== "") {
+                        //     startChat(userName, key);
+                        // }
+                        // await delay(200);
                         setActiveKey(key);
                     }}
                     onEdit={(targetKey, action) => {

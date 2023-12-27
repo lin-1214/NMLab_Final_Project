@@ -55,15 +55,15 @@ const ChatRoomTabs: FC<ChatRoomTabsProps> = (props) => {
     const [value, setValue] = useState<number | false>(false);
     const keyID_Pairs = useRef(new Map<number, string>());
     const IDKey_Pairs = useRef(new Map<string, number>());
-    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    const handleChange = async (event: React.SyntheticEvent, newValue: number) => {
         if (newValue === items.length + 1) {
             console.log("add");
             if (onEdit) onEdit("", "add");
             return;
         }
-        setValue(newValue);
         const __key = keyID_Pairs.current.get(newValue);
-        if (__key) onChange(__key);
+        if (__key) await onChange(__key);
+        setValue(newValue);
     };
     useEffect(() => {
         const currentID = IDKey_Pairs.current.get(activeKey);

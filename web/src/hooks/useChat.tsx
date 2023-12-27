@@ -108,7 +108,14 @@ const UseChatProvider: FC<UseChatProviderProps> = (props) => {
         {}
     ); // {box: key}
     const [msgSent, setMsgSent] = useState(true);
-    const { setLogOut, setNowUser, setNowPassword, company, userName } = useUserData();
+    const { setLogOut, setNowUser, setNowPassword, company, userName, signedIn } = useUserData();
+    useEffect(() => {
+        setMessages([]);
+        setStatus({});
+        setSignInCallBack(() => () => {});
+        setSignInFailCallBack(() => () => {});
+    }, [signedIn]);
+
     const safeSendData = async (
         data: string,
         clients: WebSocket[],
@@ -193,6 +200,7 @@ const UseChatProvider: FC<UseChatProviderProps> = (props) => {
     const startChat = (name: string, to: string) => {
         console.log(`start a chatbox of ${name + to}`);
         const [toName, toCompany] = to.split(" ");
+        setMessages([]);
         sendData(["CHAT", { name, to: toName, companys: [company, toCompany] }]);
     };
     const sendMessageInBox = (payload: messageTypes) => {
@@ -446,9 +454,9 @@ const UseChatProvider: FC<UseChatProviderProps> = (props) => {
                 };
         }
     };
-    useEffect(() => {
-        setMsgSent(() => !msgSent);
-    }, [status]);
+    // useEffect(() => {
+    //     setMsgSent(() => !msgSent);
+    // }, [status]);
 
     myClients[clientKey.backend].onmessage = (byteString) => mainClientOnMsg(byteString);
     myClients[clientKey.RPi].onmessage = (byteString) => RPiClientOnMsg(byteString);
