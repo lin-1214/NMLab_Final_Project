@@ -1,0 +1,208 @@
+.
+├── IOTA_test
+│   ├── build
+│   │   ├── company-A
+│   │   │   ├── src
+│   │   │   │   ├── create_company_did.js
+│   │   │   │   ├── create_did.js
+│   │   │   │   ├── create_vc.js
+│   │   │   │   ├── create_vp.js
+│   │   │   │   ├── did_controls_did.js
+│   │   │   │   ├── update_did.js
+│   │   │   │   └── verify_vp.js
+│   │   │   ├── main.js
+│   │   │   └── util.js
+│   │   ├── controllers
+│   │   │   └── api-controllers.js
+│   │   ├── examples
+│   │   │   └── src
+│   │   │       ├── 0_basic
+│   │   │       │   ├── 0_create_did.js
+│   │   │       │   ├── 1_update_did.js
+│   │   │       │   ├── 2_resolve_did.js
+│   │   │       │   ├── 3_deactivate_did.js
+│   │   │       │   ├── 4_delete_did.js
+│   │   │       │   ├── 5_create_vc.js
+│   │   │       │   ├── 6_create_vp.js
+│   │   │       │   └── 7_revoke_vc.js
+│   │   │       ├── 1_advanced
+│   │   │       │   ├── 0_did_controls_did.js
+│   │   │       │   ├── 1_did_issues_nft.js
+│   │   │       │   ├── 2_nft_owns_did.js
+│   │   │       │   ├── 3_did_issues_tokens.js
+│   │   │       │   ├── 4_custom_resolution.js
+│   │   │       │   └── 5_domain_linkage.js
+│   │   │       ├── tests
+│   │   │       │   ├── 0_create_did.js
+│   │   │       │   ├── 0_did_controls_did.js
+│   │   │       │   ├── 1_did_issues_nft.js
+│   │   │       │   ├── 1_update_did.js
+│   │   │       │   ├── 2_nft_owns_did.js
+│   │   │       │   ├── 2_resolve_did.js
+│   │   │       │   ├── 3_deactivate_did.js
+│   │   │       │   ├── 3_did_issues_tokens.js
+│   │   │       │   ├── 4_custom_resolution.js
+│   │   │       │   ├── 4_delete_did.js
+│   │   │       │   ├── 5_create_vc.js
+│   │   │       │   ├── 5_domain_linkage.js
+│   │   │       │   ├── 6_create_vp.js
+│   │   │       │   └── 7_revoke_vc.js
+│   │   │       ├── main.js
+│   │   │       └── util.js
+│   │   ├── method
+│   │   │   ├── src
+│   │   │   │   ├── create_company_did.js
+│   │   │   │   ├── create_vc.js
+│   │   │   │   ├── create_vp.js
+│   │   │   │   ├── did_controls_did.js
+│   │   │   │   ├── update_did.js
+│   │   │   │   └── verify_vp.js
+│   │   │   ├── main.js
+│   │   │   ├── method.js
+│   │   │   └── util.js
+│   │   ├── routes
+│   │   │   └── api-routes.js
+│   │   ├── server.js
+│   │   └── util.js
+│   ├── controllers
+│   │   └── api-controllers.ts
+│   ├── examples
+│   │   ├── src
+│   │   │   ├── 0_basic
+│   │   │   │   ├── 0_create_did.ts
+│   │   │   │   ├── 1_update_did.ts
+│   │   │   │   ├── 2_resolve_did.ts
+│   │   │   │   ├── 3_deactivate_did.ts
+│   │   │   │   ├── 4_delete_did.ts
+│   │   │   │   ├── 5_create_vc.ts
+│   │   │   │   ├── 6_create_vp.ts
+│   │   │   │   └── 7_revoke_vc.ts
+│   │   │   ├── 1_advanced
+│   │   │   │   ├── 0_did_controls_did.ts
+│   │   │   │   ├── 1_did_issues_nft.ts
+│   │   │   │   ├── 2_nft_owns_did.ts
+│   │   │   │   ├── 3_did_issues_tokens.ts
+│   │   │   │   ├── 4_custom_resolution.ts
+│   │   │   │   └── 5_domain_linkage.ts
+│   │   │   ├── tests
+│   │   │   │   ├── 0_create_did.ts
+│   │   │   │   ├── 0_did_controls_did.ts
+│   │   │   │   ├── 1_did_issues_nft.ts
+│   │   │   │   ├── 1_update_did.ts
+│   │   │   │   ├── 2_nft_owns_did.ts
+│   │   │   │   ├── 2_resolve_did.ts
+│   │   │   │   ├── 3_deactivate_did.ts
+│   │   │   │   ├── 3_did_issues_tokens.ts
+│   │   │   │   ├── 4_custom_resolution.ts
+│   │   │   │   ├── 4_delete_did.ts
+│   │   │   │   ├── 5_create_vc.ts
+│   │   │   │   ├── 5_domain_linkage.ts
+│   │   │   │   ├── 6_create_vp.ts
+│   │   │   │   └── 7_revoke_vc.ts
+│   │   │   ├── main.ts
+│   │   │   └── util.ts
+│   │   └── README.md
+│   ├── method
+│   │   ├── data
+│   │   │   ├── LIN9DIAN.json
+│   │   │   ├── NMLAB.json
+│   │   │   ├── SSC.json
+│   │   │   ├── Sea.json
+│   │   │   ├── X.json
+│   │   │   └── newX.json
+│   │   ├── src
+│   │   │   ├── create_company_did.ts
+│   │   │   ├── create_vc.ts
+│   │   │   ├── create_vp.ts
+│   │   │   ├── did_controls_did.ts
+│   │   │   ├── update_did.ts
+│   │   │   └── verify_vp.ts
+│   │   ├── README.md
+│   │   ├── main.ts
+│   │   ├── method.ts
+│   │   └── util.ts
+│   ├── routes
+│   │   └── api-routes.ts
+│   ├── LICENSE
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── server.ts
+│   ├── tsconfig.json
+│   └── util.ts
+├── RPi_controller
+│   ├── test
+│   │   ├── data
+│   │   │   ├── private.pem
+│   │   │   └── public.pem
+│   │   ├── create_key_pair.py
+│   │   ├── requirements.txt
+│   │   ├── test_server.py
+│   │   └── test_sign.py
+│   ├── README.md
+│   ├── RPi_server.py
+│   └── requirements.txt
+├── backend
+│   ├── src
+│   │   ├── models
+│   │   │   ├── chatbox.js
+│   │   │   ├── identity.js
+│   │   │   └── message.js
+│   │   ├── mongo.js
+│   │   ├── server.js
+│   │   ├── test_sign.js
+│   │   └── wsConnect.js
+│   ├── README.md
+│   ├── package.json
+│   └── yarn.lock
+├── web
+│   ├── public
+│   │   └── vite.svg
+│   ├── src
+│   │   ├── assets
+│   │   │   ├── Logo.jpeg
+│   │   │   ├── XmasTree.png
+│   │   │   ├── loginBackground.jpeg
+│   │   │   ├── loginBackground2.jpeg
+│   │   │   └── react.svg
+│   │   ├── components
+│   │   │   ├── styles
+│   │   │   │   ├── Message.scss
+│   │   │   │   └── Title.scss
+│   │   │   ├── ChatModal.tsx
+│   │   │   ├── ChatRoomTabs.tsx
+│   │   │   ├── Input-template.tsx
+│   │   │   ├── Message.tsx
+│   │   │   ├── Modal-template.tsx
+│   │   │   ├── PopUp.tsx
+│   │   │   └── Title.tsx
+│   │   ├── containers
+│   │   │   ├── styles
+│   │   │   │   ├── ChatRoom.scss
+│   │   │   │   ├── ChatRoom.styled.ts
+│   │   │   │   └── Signin.scss
+│   │   │   ├── ChatRoom.tsx
+│   │   │   └── Signin.tsx
+│   │   ├── hooks
+│   │   │   ├── useChat.tsx
+│   │   │   └── useUserData.tsx
+│   │   ├── types
+│   │   │   ├── chatBoxSchema.d.ts
+│   │   │   ├── chatSchema.d.ts
+│   │   │   └── index.ts
+│   │   ├── App.css
+│   │   ├── App.tsx
+│   │   ├── declaration.d.ts
+│   │   ├── index.css
+│   │   ├── main.tsx
+│   │   └── vite-env.d.ts
+│   ├── README.md
+│   ├── index.html
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── README.md
+└── file_tree.txt
+
+40 directories, 166 files

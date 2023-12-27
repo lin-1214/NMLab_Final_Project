@@ -30,10 +30,7 @@
         "wasm-opt": "^1.3.0"
     },
     "scripts": {
-        "run:example": "tsc && ts-node ./examples/src/main.ts",
-        "BR:company": "tsc && ts-node ./method/main.ts",
-        "build:company": "tsc",
-        "run:company": "ts-node ./method/main.ts",
-        "run:server": "ts-node ./server.ts"
+        "run:company": "tsc && ts-node ./method/main.ts",
+        "run:server": "tsc && ts-node ./server.ts"
     }
 }

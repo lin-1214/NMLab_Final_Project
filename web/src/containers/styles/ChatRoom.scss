@@ -33,21 +33,21 @@
 }
 
 .chatBoxWrapper {
-  width: 100%;
+  width: max(100%, max-content);
   height: 65vh;
   background: #eeeeee52;
   border-radius: 10px;
   margin: 20px;
   padding: 20px;
-  overflow: auto;
+  // overflow: scroll;
 }
 
 .chatBox {
-  width: 100%;
+  width: max(100%, max-content);
   height: 55vh;
   background: #eeeeee52;
   padding: 10px;
-  overflow: auto;
+  // overflow: scroll;
 }
 .footRef {
   height: 40px;

@@ -28,6 +28,6 @@ const IdentitySchema = new Schema({
     },
 });
 // Creating a table within database with the defined schema
-const Identity = mongoose.model("identity", IdentitySchema);
+const Identity = mongoose.model("Identity", IdentitySchema);
 // Exporting table for querying and mutating
 export default Identity;

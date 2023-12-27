@@ -1,6 +1,5 @@
 import Message from "./models/message";
-import { UserModel, MessageModel, ChatBoxModel } from "./models/chatbox";
-import IdentityModel from "./models/identity";
+import { UserModel, MessageModel, ChatBoxModel, IdentityModel } from "./models";
 import crypto from "crypto";
 // 在 global scope 將 chatBoxes 宣告成空物件
 const chatBoxes = {};
@@ -13,17 +12,17 @@ const sendData = (data, ws) => {
 const sendStatus = (payload, ws) => {
     sendData(["status", payload], ws);
 };
-const initData = (ws) => {
-    Message.find()
-        .sort({ created_at: -1 })
-        .limit(100)
-        .exec((err, res) => {
-            if (err) throw err;
-            // initialize app with existing messages
-            console.log(res);
-            sendData(["init", res], ws);
-        });
-};
+// const initData = (ws) => {
+//     Message.find()
+//         .sort({ created_at: -1 })
+//         .limit(100)
+//         .exec((err, res) => {
+//             if (err) throw err;
+//             // initialize app with existing messages
+//             console.log(res);
+//             sendData(["init", res], ws);
+//         });
+// };
 
 const makeName = (name, to) => {
     return [name, to].sort().join("_");
@@ -35,12 +34,24 @@ const validateChatBox = async (name, participants) => {
             name,
             users: participants.map((user) => user._id),
         }).save();
-    return box.populate(["users", { path: "messages", populate: "sender" }]);
+    return box.populate([
+        { path: "users", populate: "identity" },
+        { path: "messages", populate: { path: "sender", populate: "identity" } },
+    ]);
 };
-const validateUser = async (name) => {
-    let user = await UserModel.findOne({ name: name });
+const validateUser = async (userdata) => {
+    const { name, company } = userdata;
+    let identity;
+    try {
+        identity = await IdentityModel.findOne({ userName: name, company: company });
+    } catch (e) {
+        console.log(e);
+        throw `User ${name}@${company} doesn't exist.`;
+    }
+    if (!identity) throw `User ${name}@${company} doesn't exist.`;
+    let user = await UserModel.findOne({ identity: identity._id });
     if (user) return user;
-    user = await new UserModel({ name: name, chatBoxes: [] }).save();
+    user = await new UserModel({ identity: identity._id, chatBoxes: [] }).save();
     return user;
 };
 const updateUserChatbox = async (user, chatBox_id) => {
@@ -58,10 +69,16 @@ const initChatBoxData = (chatboxData, ws) => {
 
     const processedData = chatboxData.messages.map((msg) => {
         // initialize app with existing messages
-        // console.log(msg);
-        return { name: msg.sender.name, body: msg.body };
+        console.log(msg);
+        return {
+            name: msg.sender.identity.userName,
+            company: msg.sender.identity.company,
+            body: msg.body,
+        };
     });
-
+    console.log("init");
+    console.log(chatboxData.messages);
+    console.log(processedData);
     sendData(["init", processedData], ws);
     console.log("init sent");
 };
@@ -185,10 +202,6 @@ const handleLogin = async (payload, ws) => {
     return;
 };
 export default {
-    initData: (ws) => {
-        console.log("init Data");
-        initData(ws);
-    },
     onChatBoxMessage: (wss, ws) => {
         ws.on("message", async (byteString) => {
             const data = byteString;
@@ -453,14 +466,28 @@ export default {
                 }
             }
 
+            // for RSA key exchange //
+
             // for chatbox //
-            const { name, to } = payload;
+            const { name, to, companys } = payload;
             // console.log(name, to);
+            if (!companys || companys.length !== 2) {
+                sendStatus({ type: "error", msg: "Company field not match" }, ws);
+                return;
+            }
             const participants = await Promise.all(
-                [name, to].map(async (user) => await validateUser(user))
-            );
+                [
+                    { name, company: companys[0] },
+                    { name: to, company: companys[1] },
+                ].map(async (user) => await validateUser(user))
+            ).catch((e) => {
+                sendStatus({ type: "error", msg: e }, ws);
+                console.error(e);
+                return;
+            });
+            if (!participants) return;
             // console.log("pass");
-            const chatBoxName = makeName(name, to);
+            const chatBoxName = makeName([name + companys[0]], [to + companys[1]]);
             // 如果不曾有過 chatBoxName 的對話，將 chatBoxes[chatBoxName] 設定為 empty Set
             if (!chatBoxes[chatBoxName]) chatBoxes[chatBoxName] = new Set(); // make new record for chatbox
             chatBoxes[chatBoxName].add(ws);
@@ -479,19 +506,23 @@ export default {
             switch (task) {
                 case "CHAT":
                     console.log(name, to);
-                    const chatboxData = await validateChatBox(makeName(name, to), participants);
+                    const chatboxData = await validateChatBox(chatBoxName, participants);
+                    // console.log(
+                    //     "CHAT chatboxdata",
+                    //     chatboxData.messages[0].sender.identity.userName
+                    // );
                     await Promise.all(
                         participants.map(
                             async (user) => await updateUserChatbox(user, chatboxData._id)
                         )
                     );
                     initChatBoxData(chatboxData, ws);
-                    console.log("chatboxdata", chatboxData);
+                    // console.log("chatboxdata", chatboxData);
                     break;
                 case "MESSAGE":
                     const { body } = payload;
                     let box = await ChatBoxModel.findOne({
-                        name: makeName(name, to),
+                        name: chatBoxName,
                     });
                     const new_message = new MessageModel({
                         chatBox: box._id,
@@ -511,15 +542,14 @@ export default {
                         break;
                     }
                     await updateChatboxMsg(box, new_message);
-
                     // console.log(chatBoxes[chatBoxName]);
                     chatBoxes[chatBoxName].forEach((ws) => {
-                        sendData(["output", [{ name: name, to: to, body: body }]], ws);
+                        sendData(["output", [{ name: name, to: to, body: body, companys }]], ws);
                     });
                     break;
                 case "CLEAR":
                     let clear_box = await ChatBoxModel.findOne({
-                        name: makeName(name, to),
+                        name: chatBoxName,
                     });
                     await ChatBoxModel.updateOne(
                         { _id: clear_box._id },

@@ -107,7 +107,8 @@ const ChatRoomTabs: FC<ChatRoomTabsProps> = (props) => {
                         <TabPanel key={item.key} value={value || 0} index={index}>
                             <TableContainer
                                 component={Paper}
-                                sx={{ overflowX: "hidden", overflowY: "auto", padding: "1vw" }}
+                                sx={{ overflowX: "hidden", padding: "1vw" }}
+                                // sx={{ overflowX: "hidden", overflowY: "scroll", padding: "1vw" }}
                             >
                                 {item.children}
                             </TableContainer>
@@ -120,9 +121,13 @@ const ChatRoomTabs: FC<ChatRoomTabsProps> = (props) => {
                         component={Paper}
                         sx={{
                             overflowX: "hidden",
-                            overflowY: "auto",
                             padding: "1vw",
                         }}
+                        // sx={{
+                        //     overflowX: "hidden",
+                        //     overflowY: "scroll",
+                        //     padding: "1vw",
+                        // }}
                     >
                         <ChatBox />
                     </TableContainer>

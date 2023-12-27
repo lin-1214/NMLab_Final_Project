@@ -1,5 +1,14 @@
 import { FC, createContext, useEffect, useState, useContext } from "react";
-import { messageTypes, sendDataTypes, verificationTypes } from "../types";
+import {
+    messageTypes,
+    sendDataTypes,
+    verificationTypes,
+    RSASessionCommandTypes,
+    publicKeysTypes,
+    ChatBoxDataTypes,
+    ChatBoxSessionStatus,
+    ChatBoxStates,
+} from "../types";
 
 // console.log("i enter useChat");
 import { useUserData } from "./useUserData";
@@ -45,8 +54,8 @@ interface UseChatTypes {
     setMsgSent: React.Dispatch<React.SetStateAction<boolean>>;
     askInit: () => void;
     startChat: (name: string, to: string) => void;
-    sendMessageInBox: (payload: { name: string; to: string; body: string }) => void;
-    clearChatBox: (participants: { name: string; to: string }) => void;
+    sendMessageInBox: (payload: messageTypes) => void;
+    clearChatBox: (participants: messageTypes) => void;
     sendLoginData: (payload: {
         state: string;
         userName: string;
@@ -65,17 +74,6 @@ interface UseChatTypes {
     setSignInFailCallBack: React.Dispatch<React.SetStateAction<() => void>>;
 }
 
-interface publicKeysTypes {
-    [name: string]: string;
-}
-interface ChatBoxDataTypes {
-    id: string;
-    name: string;
-    to: string;
-    status: "close" | "RSAEstablishing" | "RSAEstablished" | "KeyExchanged";
-    key?: string;
-    publicKeys?: publicKeysTypes;
-}
 const ChatData = createContext<UseChatTypes>({
     status: {},
     messages: [],
@@ -106,7 +104,9 @@ const UseChatProvider: FC<UseChatProviderProps> = (props) => {
     const [status, setStatus] = useState<{ type?: string; msg?: string }>({});
     const [signInCallBak, setSignInCallBack] = useState<() => void>(() => () => {});
     const [signInFailCallBak, setSignInFailCallBack] = useState<() => void>(() => () => {});
-    const [chatBoxSessions, setChatBoxSessions] = useState<{ [key: string]: string }>({}); // {box: key}
+    const [chatBoxSessions, setChatBoxSessions] = useState<{ [key: string]: ChatBoxSessionStatus }>(
+        {}
+    ); // {box: key}
     const [msgSent, setMsgSent] = useState(true);
     const { setLogOut, setNowUser, setNowPassword, company, userName } = useUserData();
     const safeSendData = async (
@@ -172,7 +172,9 @@ const UseChatProvider: FC<UseChatProviderProps> = (props) => {
         );
     };
     const sendData = async (
-        data: [sendDataTypes, messageTypes | "init" | verificationTypes],
+        data:
+            | [sendDataTypes, messageTypes | "init" | verificationTypes]
+            | [RSASessionCommandTypes, ChatBoxDataTypes],
         attempt = 0
     ) => {
         safeSendData(
@@ -190,13 +192,14 @@ const UseChatProvider: FC<UseChatProviderProps> = (props) => {
     //ChatBoxes
     const startChat = (name: string, to: string) => {
         console.log(`start a chatbox of ${name + to}`);
-        sendData(["CHAT", { name, to }]);
+        const [toName, toCompany] = to.split(" ");
+        sendData(["CHAT", { name, to: toName, companys: [company, toCompany] }]);
     };
-    const sendMessageInBox = (payload: { name: string; to: string; body: string }) => {
+    const sendMessageInBox = (payload: messageTypes) => {
         console.log("MESSAGE", payload);
         sendData(["MESSAGE", payload]);
     };
-    const clearChatBox = (participants: { name: string; to: string }) => {
+    const clearChatBox = (participants: messageTypes) => {
         console.log("clear");
         sendData(["CLEAR", participants]);
     };
@@ -207,14 +210,15 @@ const UseChatProvider: FC<UseChatProviderProps> = (props) => {
         console.log("payload:", payload);
         switch (task) {
             case "output": {
+                console.log("receive output");
                 let prevMessages = messages;
                 payload?.forEach((msg: messageTypes) => {
                     if (isValideMessage(msg)) {
                         prevMessages = [...prevMessages, msg];
                     } else console.error("invalid message: ", msg);
                 });
+                // console.log("prevMessages: ", prevMessages);
                 setMessages(prevMessages);
-                console.log("receive output");
                 break;
             }
             case "status": {
@@ -387,26 +391,18 @@ const UseChatProvider: FC<UseChatProviderProps> = (props) => {
                 console.error(`unCaught askVP error: `, e);
             });
     };
-
     const ChatBoxControll = async ({ status, key, publicKeys, id, name, to }: ChatBoxDataTypes) => {
         switch (status) {
             case "close":
                 return {
-                    task: ["RSAEstablishing", { id, name, to }],
+                    task: ["RSAEstablishing", { id, name, to, publicKeys }],
                     nextState: "RSAEstablishing",
                     needEncrypt: false,
                     needTransmit: true,
                     needDecrypt: false,
+                    rpiSave: false,
                 };
             case "RSAEstablishing":
-                return {
-                    task: ["RSAEstablished", { id, name, to, publicKeys }],
-                    nextState: "RSAEstablished",
-                    needEncrypt: false,
-                    needTransmit: true,
-                    needDecrypt: false,
-                };
-            case "RSAEstablished":
                 const sessionKey = await crypto.subtle.generateKey(
                     {
                         name: "AES-GCM",
@@ -416,17 +412,38 @@ const UseChatProvider: FC<UseChatProviderProps> = (props) => {
                     ["encrypt", "decrypt"]
                 );
                 const exportedSessionKey = await crypto.subtle.exportKey("jwk", sessionKey);
+                if (!publicKeys) throw "publicKeys not found";
+                if (!publicKeys[to]) throw "publicKeys 'to' not found";
+                if (!publicKeys[name]) throw "publicKeys 'name' not found";
                 return {
                     task: [
-                        "KeyExchanged",
+                        "RSAEstablished",
                         { id, name, to, publicKeys, key: JSON.stringify(exportedSessionKey) },
                     ],
-                    nextState: "KeyExchanged",
-                    needEncrypt: true,
+                    nextState: "RSAEstablished",
+                    needEncrypt: false,
                     needTransmit: true,
                     needDecrypt: false,
+                    rpiSave: false,
+                };
+            case "RSAEstablished":
+                return {
+                    task: ["KeyExchanged", { id, name, to, publicKeys, key }],
+                    nextState: "KeyExchanged",
+                    needEncrypt: false,
+                    needTransmit: false,
+                    needDecrypt: true,
+                    rpiSave: true,
                 };
             case "KeyExchanged":
+                return {
+                    task: ["KeyExchanged", { id, name, to, publicKeys, key }],
+                    nextState: "KeyExchanged",
+                    needEncrypt: false,
+                    needTransmit: false,
+                    needDecrypt: true,
+                    rpiSave: true,
+                };
         }
     };
     useEffect(() => {

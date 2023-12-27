@@ -76,7 +76,7 @@ const ChatRoomInput: FC<ChatRoomInputProps> = ({ bodyRef, onSubmit }) => {
     );
 };
 const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
-    const { userName, setLogOut } = useUserData();
+    const { userName, company, setLogOut } = useUserData();
     const bodyRef = useRef<HTMLInputElement>(null);
     const RoomBottomRef = useRef<HTMLDivElement>(null);
     const {
@@ -107,9 +107,10 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
     }, [msgSent]);
     useEffect(() => {
         const newChatBoxes = chatBoxes.map(({ label, children, key }) => {
+            console.log("3 useEffect", key, activeKey);
             return {
                 label,
-                children: activeKey === label ? extractChat(label) : children,
+                children: activeKey === key ? extractChat(key) : children,
                 key,
             };
         });
@@ -136,6 +137,7 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
             <p style={{ color: "#ccc" }}> No messages... </p>
         ) : (
             chat.map(({ name, body }, i) => {
+                // console.log("displayMessages", name, body);
                 if (name && body) {
                     if (
                         i === chat.length - 1 &&
@@ -162,16 +164,18 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
         </ChatRoomStyled.ChatBox>
     ); // 產⽣ chat 的 DOM nodes
     const extractChat = (friend: string) => {
-        // console.log("1 extractChat", messages);
-        return renderChat(messages.filter(({ name }) => name === friend || name === userName));
+        const [toName, toCompany] = friend.split(" ");
+        // console.log("1 extractChat", messages, friend, `${userName} ${company}`);
+        return renderChat(messages.filter(({ name }) => name === toName || name === userName));
     }; // chatBox 的 children 來源 friend or user
-    const createChatBox = (friend: string) => {
-        if (chatBoxes.some(({ key }) => key === friend)) {
+    const createChatBox = ({ name: friend, company }: { name: string; company: string }) => {
+        const targetKey = `${friend} ${company}`;
+        if (chatBoxes.some(({ key }) => key === targetKey)) {
             throw new Error(friend + "'s chat box has already opened.");
         }
-        startChat(userName, friend);
-        const chat = extractChat(friend);
-        setChatBoxes([...chatBoxes, { label: friend, children: chat, key: friend }]);
+        startChat(userName, targetKey);
+        const chat = extractChat(targetKey);
+        setChatBoxes([...chatBoxes, { label: friend, children: chat, key: targetKey }]);
         setMsgSent(true);
         // console.log("createChatBox", friend);
         return friend;
@@ -208,9 +212,11 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
             return false;
         }
         // sendMessage({ name: userName, body: msg });
+        const [toName, toCompany] = activeKey.split(" ");
         sendMessageInBox({
             name: userName,
-            to: activeKey,
+            to: toName,
+            companys: [company, toCompany],
             body: msg,
         });
         setMsgSent(true);
@@ -226,7 +232,13 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
                     </div>
                     <Button
                         variant="contained"
-                        onClick={() => clearChatBox({ name: userName, to: activeKey })}
+                        onClick={() =>
+                            clearChatBox({
+                                name: userName,
+                                to: activeKey.split(" ")[0],
+                                companys: [company, activeKey.split(" ")[1]],
+                            })
+                        }
                         style={{ backgroundColor: "#b2a59b" }}
                     >
                         Clear
@@ -241,7 +253,7 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
                 </div>
                 <ChatRoomTabs
                     onChange={(key: string) => {
-                        console.log("onChange", key);
+                        // console.log("onChange", key);
                         setActiveKey(key);
                     }}
                     onEdit={(targetKey, action) => {
@@ -256,11 +268,11 @@ const ChatRoom: FC<ChatRoomProps> = ({ user }) => {
                 ></ChatRoomTabs>
                 <ChatModal
                     open={modalOpen}
-                    onCreate={(name: string) => {
-                        createChatBox(name);
-                        setActiveKey(name);
+                    onCreate={({ name, company }) => {
+                        createChatBox({ name, company });
+                        setActiveKey(`${name} ${company}`);
                         setModalOpen(false);
-                        console.log("onCreate done", name);
+                        // console.log("onCreate done", { name, company });
                     }}
                     onCancel={() => {
                         setModalOpen(false);

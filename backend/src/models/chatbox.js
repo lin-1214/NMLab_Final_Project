@@ -3,7 +3,11 @@ const Schema = mongoose.Schema;
 
 /******* User Schema *******/
 const UserSchema = new Schema({
-    name: { type: String, required: [true, "Name field is required."] },
+    identity: {
+        type: mongoose.Types.ObjectId,
+        required: [true, "Identity field is required."],
+        ref: "Identity",
+    },
     chatBoxes: [{ type: mongoose.Types.ObjectId, ref: "ChatBox" }],
 });
 const UserModel = mongoose.model("User", UserSchema);
